@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles.css">
     <style>
-        /* Compact POS styles */
         .section { padding: 12px !important; margin-bottom: 10px !important; }
         .section__head { margin-bottom: 8px !important; }
         .section__title { margin: 0 0 4px 0 !important; font-size: 18px !important; }
@@ -28,9 +27,48 @@
         .pay-grid input { padding: 6px 8px !important; }
         .pos-pay { margin-top: 12px !important; padding: 12px 20px !important; }
     </style>
-    <title>Document</title>
+    <title>Software Almacen</title>
 </head>
 <body>
-    <!-- Content goes here -->
+    <div class="section">
+        <div class="section__head">
+            <h2 class="section__title">Caja</h2>
+        </div>
+        <div class="pos-add">
+            <div class="pos-add__q">
+                <label for="quantity">Cantidad:</label>
+                <input type="number" id="quantity" name="quantity">
+            </div>
+            <div class="pos-add__qty">
+                <label for="price">Precio:</label>
+                <input type="text" id="price" name="price">
+            </div>
+        </div>
+        <div class="pos-box">
+            <div class="pos-box__head">
+                <h3>Resultados</h3>
+            </div>
+            <div class="pos-results">
+                <div class="pos-result">
+                    <span class="pos-result__name">Item 1</span>
+                    <span class="pos-result__meta">Descripción 1</span>
+                </div>
+                <div class="pos-result">
+                    <span class="pos-result__name">Item 2</span>
+                    <span class="pos-result__meta">Descripción 2</span>
+                </div>
+            </div>
+        </div>
+        <div class="totals">
+            <div class="totals__line">
+                Total: <span id="total">$0.00</span>
+            </div>
+        </div>
+        <div class="pay-grid">
+            <label for="payment">Pago:</label>
+            <input type="text" id="payment" name="payment">
+            <button class="pos-pay">Pagar</button>
+        </div>
+    </div>
 </body>
 </html>
