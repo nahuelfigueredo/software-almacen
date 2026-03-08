@@ -382,17 +382,32 @@ input:disabled, select:disabled, textarea:disabled {
 .page-watermark {
   position: fixed;
   right: 5%;
-  bottom: 10%;
-  width: 400px;
-  opacity: 0.025;
+  bottom: 8%;
+  width: 420px;
+  opacity: 0.035;
   z-index: 0;
   pointer-events: none;
   user-select: none;
+  filter: grayscale(0.3) brightness(1.1);
+  mix-blend-mode: multiply;
+  animation: float 6s ease-in-out infinite;
 }
 
 .page-watermark img {
   width: 100%;
   height: auto;
+  display: block;
+}
+
+[data-theme="dark"] .page-watermark {
+  opacity: 0.02;
+  filter: grayscale(0.5) brightness(0.8) invert(0.08);
+  mix-blend-mode: screen;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
 }
 
 /* ===== THEME TOGGLE ===== */
@@ -566,7 +581,11 @@ input:disabled, select:disabled, textarea:disabled {
   }
 
   .page-watermark {
-    width: 250px;
+    width: 280px;
+    bottom: 5%;
+    right: auto;
+    left: 50%;
+    margin-left: -140px;
     opacity: 0.02;
   }
 }
