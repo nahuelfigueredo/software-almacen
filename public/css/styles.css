@@ -1,9 +1,11 @@
 :root{
   --bg:#f8fafc;
   --card:#ffffff;
+  --card-hover:#f1f5f9;
   --text:#0f172a;
   --muted:#475569;
   --line:rgba(15, 23, 42, .08);
+  --border:rgba(15, 23, 42, .08);
   --accent:#0ea5e9;
   --accent2:#0284c7;
   --danger:#dc2626;
@@ -21,6 +23,43 @@
   --transition-md: 200ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ============================================
+   DARK MODE VARIABLES
+   ============================================ */
+
+[data-theme="dark"] {
+  /* Backgrounds */
+  --bg: #0f172a;
+  --card: #1e293b;
+  --card-hover: #334155;
+
+  /* Text */
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+
+  /* Borders */
+  --line: rgba(148, 163, 184, 0.15);
+  --border: rgba(148, 163, 184, 0.15);
+
+  /* Primary colors (MCN blues remain vibrant) */
+  --accent: #7CE8FF;
+  --accent2: #5dd4f0;
+
+  /* Semantic colors - adjusted for dark mode */
+  --ok: #22c55e;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+
+  /* Shadows - darker and more prominent */
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --shadow-soft: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.4);
+
+  /* Logo watermark - adjust for dark backgrounds */
+  --logo-opacity: 0.18;
+  --logo-filter: grayscale(0.2) brightness(1.5) invert(0.1);
+}
+
 *{box-sizing:border-box}
 html,body{height:100%}
 
@@ -29,12 +68,21 @@ body{
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   color:var(--text);
   line-height: 1.6;
+  transition: background-color 0.3s ease, color 0.3s ease;
 
   /* Fondo más “pro” */
   background:
     radial-gradient(1100px 600px at 10% 0%, rgba(14,165,233,.12), transparent 60%),
     radial-gradient(900px 500px at 90% 0%, rgba(2,132,199,.08), transparent 55%),
     linear-gradient(180deg, #ffffff 0%, var(--bg) 36%, var(--bg) 100%);
+}
+
+/* Dark mode background */
+[data-theme="dark"] body{
+  background:
+    radial-gradient(1100px 600px at 10% 0%, rgba(124,232,255,.12), transparent 60%),
+    radial-gradient(900px 500px at 90% 0%, rgba(43,179,243,.08), transparent 55%),
+    linear-gradient(180deg, #0f172a 0%, #0f172a 100%);
 }
 
 .wrap{max-width:1100px;margin:0 auto;padding:16px}
@@ -61,6 +109,53 @@ body{
 .brand__name{font-weight:800;letter-spacing:-.02em}
 .brand__sub{color:var(--muted);font-size:13px}
 
+/* Dark mode header */
+[data-theme="dark"] .top{
+  background: rgba(15, 23, 42, 0.85);
+  border-bottom-color: var(--line);
+}
+
+/* ============================================
+   DARK MODE TOGGLE
+   ============================================ */
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition);
+  font-size: 14px;
+  color: var(--muted);
+  user-select: none;
+}
+
+.theme-toggle:hover {
+  background: var(--card-hover);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.theme-toggle__icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.theme-toggle__label {
+  font-weight: 500;
+}
+
+/* Hide labels on small screens */
+@media (max-width: 640px) {
+  .theme-toggle__label {
+    display: none;
+  }
+}
+
 /* Estado */
 .pill{
   display:inline-flex;
@@ -80,6 +175,12 @@ body{
   box-shadow: 0 0 0 3px rgba(14,165,233,.14);
 }
 .pill__text{white-space:nowrap}
+
+/* Dark mode pill */
+[data-theme="dark"] .pill{
+  background: rgba(30, 41, 59, 0.78);
+  border-color: var(--line);
+}
 
 /* Grid */
 .grid{
@@ -164,7 +265,8 @@ body{
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  opacity: 0.04;
+  opacity: 0.15;
+  filter: grayscale(0.3) brightness(1.2);
   pointer-events: none;
   z-index: 0;
 }
@@ -182,9 +284,22 @@ body{
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  opacity: 0.04;
+  opacity: 0.12;
+  filter: grayscale(0.3) brightness(1.2);
   pointer-events: none;
   z-index: 0;
+}
+
+/* Dark mode watermark overrides */
+[data-theme="dark"] .section::before,
+[data-theme="dark"] .auth-card::before {
+  opacity: var(--logo-opacity, 0.18);
+  filter: var(--logo-filter, grayscale(0.2) brightness(1.5) invert(0.1));
+}
+
+[data-theme="dark"] .card::after {
+  opacity: 0.15;
+  filter: var(--logo-filter, grayscale(0.2) brightness(1.5) invert(0.1));
 }
 
 /* Contenido por encima del watermark */
@@ -195,6 +310,16 @@ body{
   z-index: 1;
 }
 .muted{color:var(--muted);font-size:13px}
+
+/* Dark mode card/section backgrounds */
+[data-theme="dark"] .card{
+  background: var(--card);
+  border-color: var(--line);
+}
+[data-theme="dark"] .section{
+  background: var(--card);
+  border-color: var(--line);
+}
 
 label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
 
@@ -207,10 +332,20 @@ input,select,textarea{
   border-radius:12px;
   background: rgba(255,255,255,.92);
   outline:none;
+  color: var(--text);
 }
 input:focus,select:focus,textarea:focus{
   border-color: rgba(14,165,233,.6);
   box-shadow: 0 0 0 3px rgba(14,165,233,.15);
+}
+
+/* Dark mode inputs */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea{
+  background: rgba(30, 41, 59, 0.92);
+  border-color: var(--line);
+  color: var(--text);
 }
 
 /* Buttons */
@@ -239,6 +374,13 @@ input:focus,select:focus,textarea:focus{
 .btn--danger{border-color: rgba(220,38,38,.35); background: rgba(220,38,38,.06); color:var(--danger)}
 .btn--ok{border-color: rgba(22,163,74,.35); background: rgba(22,163,74,.08); color:var(--ok)}
 .btn:active{transform: translateY(1px)}
+
+/* Dark mode buttons */
+[data-theme="dark"] .btn{
+  background: rgba(30, 41, 59, 0.9);
+  border-color: var(--line);
+  color: var(--text);
+}
 
 /* Table */
 .table{width:100%;border-collapse: collapse}

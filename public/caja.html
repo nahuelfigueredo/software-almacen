@@ -190,6 +190,10 @@
       <h1 class="top__title">Caja</h1>
     </div>
     <div class="top__right">
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+        <span class="theme-toggle__icon">🌙</span>
+        <span class="theme-toggle__label">Oscuro</span>
+      </button>
       <span class="top__user">Usuario</span>
       <button class="btn btn--text" onclick="window.location.href='./login.html'">Salir</button>
     </div>
@@ -486,6 +490,47 @@
       document.getElementById('payTarjeta').value = '';
       document.getElementById('payTransferencia').value = '';
     });
+  </script>
+  <script>
+    // ============================================
+    // DARK MODE TOGGLE
+    // ============================================
+
+    const themeToggle = document.getElementById('themeToggle');
+    const html = document.documentElement;
+
+    // Get saved theme or default to light
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    html.setAttribute('data-theme', savedTheme);
+    updateToggleButton(savedTheme);
+
+    // Toggle theme on button click
+    if (themeToggle) {
+      themeToggle.addEventListener('click', () => {
+        const currentTheme = html.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateToggleButton(newTheme);
+      });
+    }
+
+    // Update button icon and text
+    function updateToggleButton(theme) {
+      if (!themeToggle) return;
+
+      const icon = themeToggle.querySelector('.theme-toggle__icon');
+      const label = themeToggle.querySelector('.theme-toggle__label');
+
+      if (theme === 'dark') {
+        icon.textContent = '☀️';
+        label.textContent = 'Claro';
+      } else {
+        icon.textContent = '🌙';
+        label.textContent = 'Oscuro';
+      }
+    }
   </script>
 </body>
 </html>
