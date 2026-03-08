@@ -1,0 +1,478 @@
+/* ===== MCN DIGITAL STUDIO — EFECTOS VISUALES ===== */
+/* Glassmorphism, gradientes animados, shimmer, ripple, hover glow */
+
+/* -----------------------------------------------------------------
+   1. VARIABLES DE EFECTOS
+   ----------------------------------------------------------------- */
+:root {
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-bg-strong: rgba(255, 255, 255, 0.88);
+  --glass-border: rgba(255, 255, 255, 0.50);
+  --glass-blur: 16px;
+  --glass-blur-strong: 24px;
+  --glass-shadow: 0 8px 32px rgba(2, 8, 23, 0.10);
+
+  /* Gradiente animado MCN */
+  --mcn-gradient-animated: linear-gradient(
+    270deg,
+    #7CE8FF,
+    #2BB3F3,
+    #0A66C2,
+    #2BB3F3,
+    #7CE8FF
+  );
+
+  /* Sistema de sombras extendido (8 niveles) */
+  --elev-0: none;
+  --elev-1: 0 1px 2px rgba(2, 8, 23, 0.04);
+  --elev-2: 0 2px 4px rgba(2, 8, 23, 0.06);
+  --elev-3: 0 4px 8px rgba(2, 8, 23, 0.07);
+  --elev-4: 0 6px 16px rgba(2, 8, 23, 0.09);
+  --elev-5: 0 10px 28px rgba(2, 8, 23, 0.11);
+  --elev-6: 0 16px 40px rgba(2, 8, 23, 0.13);
+  --elev-7: 0 24px 56px rgba(2, 8, 23, 0.16);
+  --elev-8: 0 32px 72px rgba(2, 8, 23, 0.20);
+
+  /* Glow de acento */
+  --glow-primary: 0 0 20px rgba(43, 179, 243, 0.35);
+  --glow-primary-strong: 0 0 40px rgba(43, 179, 243, 0.50);
+  --glow-success: 0 0 20px rgba(22, 163, 74, 0.35);
+  --glow-danger: 0 0 20px rgba(220, 38, 38, 0.35);
+
+  /* Shimmer */
+  --shimmer-bg: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.35) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+
+  /* Transiciones extra */
+  --transition-bounce: 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-spring: 400ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Tema oscuro — ajustes de efectos */
+[data-theme="dark"] {
+  --glass-bg: rgba(15, 23, 42, 0.72);
+  --glass-bg-strong: rgba(15, 23, 42, 0.88);
+  --glass-border: rgba(148, 163, 184, 0.15);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.40);
+
+  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.20);
+  --elev-2: 0 2px 4px rgba(0, 0, 0, 0.25);
+  --elev-3: 0 4px 8px rgba(0, 0, 0, 0.30);
+  --elev-4: 0 6px 16px rgba(0, 0, 0, 0.35);
+  --elev-5: 0 10px 28px rgba(0, 0, 0, 0.40);
+  --elev-6: 0 16px 40px rgba(0, 0, 0, 0.45);
+  --elev-7: 0 24px 56px rgba(0, 0, 0, 0.50);
+  --elev-8: 0 32px 72px rgba(0, 0, 0, 0.60);
+
+  --shimmer-bg: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+/* -----------------------------------------------------------------
+   2. GLASSMORPHISM
+   ----------------------------------------------------------------- */
+
+/* Clase base de vidrio esmerilado */
+.glass {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--glass-shadow) !important;
+}
+
+.glass--strong {
+  background: var(--glass-bg-strong) !important;
+  backdrop-filter: blur(var(--glass-blur-strong));
+  -webkit-backdrop-filter: blur(var(--glass-blur-strong));
+}
+
+/* Header con efecto vidrio (ya tiene backdrop-filter, reforzamos) */
+.top.glass-header {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+/* -----------------------------------------------------------------
+   3. CARDS CON BORDE GRADIENTE EN LA PARTE SUPERIOR
+   ----------------------------------------------------------------- */
+.card--gradient-border {
+  position: relative;
+  overflow: hidden;
+}
+
+.card--gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, #7CE8FF, #2BB3F3, #0A66C2);
+  border-radius: inherit inherit 0 0;
+  opacity: 1;
+}
+
+/* Cards con hover elevado + glow */
+.card--elevated {
+  transition:
+    transform 250ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 200ms ease;
+}
+
+.card--elevated:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: var(--elev-6), var(--glow-primary);
+  border-color: rgba(43, 179, 243, 0.30) !important;
+}
+
+/* -----------------------------------------------------------------
+   4. BOTONES — Shimmer / Shine en hover
+   ----------------------------------------------------------------- */
+
+/* Shimmer en btn--primary */
+.btn--primary {
+  position: relative;
+  overflow: hidden;
+  background-size: 200% auto !important;
+  transition:
+    background-position 400ms ease,
+    transform 150ms ease,
+    box-shadow 200ms ease !important;
+}
+
+.btn--primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--shimmer-bg);
+  background-size: 200% 100%;
+  background-position: -200% center;
+  transition: background-position 500ms ease;
+}
+
+.btn--primary:hover::after {
+  background-position: 200% center;
+}
+
+/* Gradiente animado (clase utilitaria para activar) */
+.btn--animated-gradient {
+  background-image: var(--mcn-gradient-animated) !important;
+  background-size: 300% 100% !important;
+  animation: gradientShift 4s ease infinite;
+}
+
+/* Ripple effect — se agrega via JS, pero definimos el estilo aquí */
+.btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  animation: rippleEffect 600ms linear;
+  background: rgba(255, 255, 255, 0.30);
+  pointer-events: none;
+}
+
+/* -----------------------------------------------------------------
+   5. INPUTS — Borde animado al focus
+   ----------------------------------------------------------------- */
+.input--animated {
+  position: relative;
+}
+
+.input--animated::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #7CE8FF, #2BB3F3, #0A66C2);
+  transition: width 250ms ease, left 250ms ease;
+  border-radius: 0 0 2px 2px;
+}
+
+.input--animated:focus-within::after {
+  width: 100%;
+  left: 0;
+}
+
+/* Estados de validación más claros */
+.input--valid input,
+.input--valid select,
+.input--valid textarea {
+  border-color: rgba(22, 163, 74, 0.60) !important;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12) !important;
+}
+
+.input--invalid input,
+.input--invalid select,
+.input--invalid textarea {
+  border-color: rgba(220, 38, 38, 0.60) !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12) !important;
+}
+
+/* -----------------------------------------------------------------
+   6. HEADER — Glass + sticky scroll shadow
+   ----------------------------------------------------------------- */
+.top {
+  transition:
+    box-shadow 250ms ease,
+    background 250ms ease,
+    border-color 250ms ease;
+}
+
+/* Clase que se agrega via JS al hacer scroll */
+.top--scrolled {
+  box-shadow: 0 4px 24px rgba(2, 8, 23, 0.10) !important;
+}
+
+[data-theme="dark"] .top--scrolled {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.40) !important;
+}
+
+/* Logo hover animado */
+.top__logo:hover img,
+.brand:hover .brand__logo-img,
+.brand:hover .brand__logo {
+  transform: scale(1.06) rotate(-2deg);
+  filter: drop-shadow(0 4px 12px rgba(43, 179, 243, 0.40));
+}
+
+/* -----------------------------------------------------------------
+   7. BADGES con gradiente
+   ----------------------------------------------------------------- */
+.badge--gradient {
+  background: linear-gradient(135deg, rgba(124, 232, 255, 0.15), rgba(10, 102, 194, 0.15));
+  border-color: rgba(43, 179, 243, 0.25);
+  color: var(--accent, #0ea5e9);
+}
+
+/* -----------------------------------------------------------------
+   8. ANIMACIONES KEYFRAMES
+   ----------------------------------------------------------------- */
+
+/* Fade in con desplazamiento hacia arriba */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Slide in desde la izquierda */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Slide in desde abajo */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Pulse para notificaciones */
+@keyframes pulsate {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.80;
+  }
+}
+
+/* Shimmer para loading states */
+@keyframes shimmerMove {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+/* Gradiente animado para elementos destacados */
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Ripple */
+@keyframes rippleEffect {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Gradient border animation */
+@keyframes borderGlow {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Entrada suave de modal/sidebar */
+@keyframes slideInModal {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Dot de notificación pulsando */
+@keyframes pulseRing {
+  0% {
+    box-shadow: 0 0 0 0 rgba(43, 179, 243, 0.40);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(43, 179, 243, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(43, 179, 243, 0);
+  }
+}
+
+/* -----------------------------------------------------------------
+   9. CLASES DE ANIMACIÓN UTILITARIAS
+   ----------------------------------------------------------------- */
+.anim-fade-in-up {
+  animation: fadeInUp 400ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.anim-slide-in-left {
+  animation: slideInLeft 350ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.anim-slide-in-up {
+  animation: slideInUp 350ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.anim-pulse {
+  animation: pulsate 2s ease-in-out infinite;
+}
+
+.anim-gradient {
+  animation: gradientShift 4s ease infinite;
+  background-size: 300% 300%;
+}
+
+/* Stagger delays para listas */
+.anim-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.anim-stagger > *:nth-child(2) { animation-delay: 60ms; }
+.anim-stagger > *:nth-child(3) { animation-delay: 120ms; }
+.anim-stagger > *:nth-child(4) { animation-delay: 180ms; }
+.anim-stagger > *:nth-child(5) { animation-delay: 240ms; }
+.anim-stagger > *:nth-child(6) { animation-delay: 300ms; }
+
+/* -----------------------------------------------------------------
+   10. SKELETON / LOADING SHIMMER
+   ----------------------------------------------------------------- */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(2, 8, 23, 0.06) 25%,
+    rgba(2, 8, 23, 0.10) 50%,
+    rgba(2, 8, 23, 0.06) 75%
+  );
+  background-size: 400px 100%;
+  animation: shimmerMove 1.4s ease-in-out infinite;
+  border-radius: var(--radius-sm, 6px);
+}
+
+[data-theme="dark"] .skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 75%
+  );
+  background-size: 400px 100%;
+}
+
+/* -----------------------------------------------------------------
+   11. KPI CARDS — estilo mejorado
+   ----------------------------------------------------------------- */
+.kpi-card {
+  transition:
+    transform 250ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 250ms ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--elev-5), 0 0 0 1px rgba(43, 179, 243, 0.12);
+}
+
+/* Pill de status con pulso */
+.pill__dot {
+  animation: pulseRing 2.5s ease-out infinite;
+}
+
+/* -----------------------------------------------------------------
+   12. MODAL ANIMATION
+   ----------------------------------------------------------------- */
+dialog[open],
+.modal--open {
+  animation: slideInModal 250ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* -----------------------------------------------------------------
+   13. REDUCE MOTION — accesibilidad
+   ----------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

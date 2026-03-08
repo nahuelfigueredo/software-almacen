@@ -1,0 +1,147 @@
+/* ===== MCN DIGITAL STUDIO — FONDOS DECORATIVOS ===== */
+/* Backgrounds con identidad MCN: logo watermark, gradientes radiales, patrones */
+/* Requiere: public/assets/img/logo2.svg (logo MCN Digital Studio en formato SVG) */
+
+/* -----------------------------------------------------------------
+   1. VARIANTES DE FONDO PRINCIPAL (body)
+   ----------------------------------------------------------------- */
+
+/* Variante A – Gradientes radiales + logo esquina inferior derecha */
+body {
+  position: relative;
+}
+
+/* Logo watermark fijo — esquina inferior derecha */
+body::before {
+  content: '';
+  position: fixed;
+  bottom: -8%;
+  right: -8%;
+  width: 560px;
+  height: 560px;
+  background: url('../assets/img/logo2.svg') no-repeat center / contain;
+  opacity: 0.035;
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+  will-change: opacity;
+}
+
+/* Acento decorativo — gradiente radial superior izquierdo */
+body::after {
+  content: '';
+  position: fixed;
+  top: -20%;
+  left: -15%;
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(124, 232, 255, 0.08) 0%,
+    rgba(43, 179, 243, 0.04) 45%,
+    transparent 70%
+  );
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Todos los elementos directos de body deben estar por encima del watermark */
+body > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* -----------------------------------------------------------------
+   2. TEMA OSCURO — ajustes de opacidad
+   ----------------------------------------------------------------- */
+[data-theme="dark"] body::before {
+  opacity: 0.025;
+  filter: brightness(0.85) saturate(0.8);
+}
+
+[data-theme="dark"] body::after {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(124, 232, 255, 0.06) 0%,
+    rgba(43, 179, 243, 0.03) 45%,
+    transparent 70%
+  );
+}
+
+/* -----------------------------------------------------------------
+   3. CLASE .bg-watermark-pattern — patrón repetido
+   Añadir a <body> para activar el fondo con patrón
+   ----------------------------------------------------------------- */
+body.bg-watermark-pattern::before {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background:
+    url('../assets/img/logo2.svg') 0 0 / 420px 420px repeat;
+  opacity: 0.022;
+  filter: grayscale(0.3);
+  bottom: auto;
+  right: auto;
+}
+
+/* -----------------------------------------------------------------
+   4. CLASE .bg-watermark-center — logo grande centrado
+   Activar con <body class="bg-watermark-center">
+   ----------------------------------------------------------------- */
+body.bg-watermark-center::before {
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  transform: translate(-50%, -50%);
+  width: 620px;
+  height: 620px;
+  opacity: 0.03;
+}
+
+/* -----------------------------------------------------------------
+   5. GRADIENTE RADIAL de acento — clase utilitaria
+   ----------------------------------------------------------------- */
+.bg-radial-accent {
+  background:
+    radial-gradient(1200px at 50% 20%, rgba(124, 232, 255, 0.13) 0%, transparent 50%),
+    radial-gradient(800px at 80% 80%, rgba(43, 179, 243, 0.10) 0%, transparent 50%),
+    radial-gradient(600px at 20% 60%, rgba(10, 102, 194, 0.07) 0%, transparent 50%);
+}
+
+/* -----------------------------------------------------------------
+   6. RESPONSIVE — reducir en móvil
+   ----------------------------------------------------------------- */
+@media (max-width: 768px) {
+  body::before {
+    width: 320px;
+    height: 320px;
+    opacity: 0.025;
+    bottom: -5%;
+    right: -5%;
+  }
+
+  body::after {
+    width: 400px;
+    height: 400px;
+  }
+}
+
+@media (max-width: 480px) {
+  body::before {
+    width: 240px;
+    height: 240px;
+    opacity: 0.02;
+  }
+}
+
+/* -----------------------------------------------------------------
+   7. REDUCE MOTION — accesibilidad
+   ----------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  body::before,
+  body::after {
+    animation: none !important;
+  }
+}
