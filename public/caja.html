@@ -1,15 +1,17 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Caja (POS)</title>
+  <title>Caja - POS</title>
 
+  <!-- Fuentes -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="./css/styles.css">
+  <link rel="stylesheet" href="/assets/css/design-system.css">
   
   <style>
     /* Estilos ultra-compactos para POS */
@@ -178,462 +180,312 @@
   </style>
 </head>
 
-<body class="pos-page page--wide">
+<body>
+  <!-- Header -->
   <header class="top">
-    <div class="wrap top__inner">
-      <div class="brand">
-        <div class="brand__logo" aria-hidden="true">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-            <path d="M7 4h10v4H7V4Z" stroke="currentColor" stroke-width="1.8"/>
-            <path d="M6 8h12l1 12H5L6 8Z" stroke="currentColor" stroke-width="1.8"/>
-            <path d="M9 12h6" stroke="currentColor" stroke-width="1.8"/>
-          </svg>
-        </div>
-        <div>
-          <div class="brand__name">Caja (POS)</div>
-          <div class="brand__sub">Búsqueda · lector USB · cobro</div>
-        </div>
-      </div>
-
-      <div class="row">
-        <a class="btn" href="./index.html">Volver</a>
-        <button class="btn btn--primary" id="btnFocusScan" type="button">
-          Escanear <span class="kbd">F2</span>
-        </button>
-      </div>
+    <div class="top__left">
+      <a href="./index.html" class="top__logo">
+        <img src="./assets/img/logo2.svg" alt="Logo" width="32" height="32">
+      </a>
+      <h1 class="top__title">Caja</h1>
+    </div>
+    <div class="top__right">
+      <span class="top__user">Usuario</span>
+      <button class="btn btn--text" onclick="window.location.href='./login.html'">Salir</button>
     </div>
   </header>
 
-  <main class="wrap split split--pos">
-    <!-- IZQUIERDA -->
-    <section class="section">
-      <div class="section__head">
-        <h3 class="section__title">Venta</h3>
-        <div class="muted" id="saleHint">Listo</div>
-      </div>
+  <nav class="nav">
+    <a href="./index.html" class="nav__link">Dashboard</a>
+    <a href="./caja.html" class="nav__link nav__link--active">Caja</a>
+    <a href="./productos.html" class="nav__link">Productos</a>
+    <a href="./reportes.html" class="nav__link">Reportes</a>
+    <a href="./usuarios.html" class="nav__link">Usuarios</a>
+    <a href="./precios.html" class="nav__link">Precios</a>
+    <a href="./ajustes.html" class="nav__link">Ajustes</a>
+  </nav>
 
-      <div class="pos-add">
-        <div class="pos-add__q">
-          <label for="qName">Buscar producto</label>
-          <input id="qName" autocomplete="off" placeholder="Ej: azúcar, coca o escaneá un código..." />
-          <div class="muted mt-8">
-            Tip: Enter lo agrega · código de barras se agrega directo
+  <!-- Contenido Principal -->
+  <main class="main">
+    <div class="split split--pos">
+      
+      <!-- Columna izquierda: Venta -->
+      <section>
+        <div class="section">
+          <div class="section__head">
+            <h3 class="section__title">Venta</h3>
+          </div>
+
+          <div class="pos-add">
+            <div class="pos-add__q">
+              <label for="qName">Buscar producto</label>
+              <input id="qName" autocomplete="off" placeholder="Ej: azúcar, coca o escaneá un código..." />
+              <div class="muted mt-8">
+                Tip: Enter lo agrega · código de barras se agrega directo
+              </div>
+            </div>
+
+            <div class="pos-add__qty">
+              <label for="qQty">Cantidad</label>
+              <input id="qQty" type="number" value="1" min="1" />
+            </div>
+
+            <div class="pos-add__btn">
+              <button class="btn btn--primary" id="btnAdd">Agregar</button>
+            </div>
           </div>
         </div>
 
-        <div class="pos-add__qty">
-          <label for="qty">Cantidad</label>
-          <input id="qty" type="number" step="0.001" min="0.001" value="1" inputmode="decimal" />
-        </div>
-
-        <div class="pos-add__btn">
-          <button class="btn btn--primary" id="btnAddByName" type="button">Agregar</button>
-        </div>
-      </div>
-
-      <div class="section pos-box">
-        <div class="pos-box__head">
-          <strong>Resultados</strong>
-          <small class="muted" id="resultsCount">0</small>
-        </div>
-        <div id="results" class="pos-results"></div>
-      </div>
-
-      <div class="section pos-box">
-        <div class="pos-box__head">
-          <strong>Carrito</strong>
-          <button class="btn btn--danger" id="btnClear" type="button">Vaciar</button>
-        </div>
-
-        <div class="table-wrap">
-          <table class="table" id="cartTable">
-            <colgroup>
-              <col style="width:45%">
-              <col style="width:12%">
-              <col style="width:18%">
-              <col style="width:18%">
-              <col style="width:7%">
-            </colgroup>
-            <thead>
-              <tr>
-                <th>Producto</th>
-                <th>Cant.</th>
-                <th>Precio</th>
-                <th>Subtotal</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-
-        <div class="totals">
-          <div class="totals__line">
-            <span>Subtotal</span>
-            <strong id="lblSubtotal">$0</strong>
+        <!-- Resultados de búsqueda -->
+        <div class="pos-box" id="resultsBox" style="display:none;">
+          <div class="pos-box__head">
+            <strong>Resultados</strong>
           </div>
-
-          <div class="totals__line totals__line--input">
-            <span>Descuento</span>
-            <input id="discount" type="number" value="0" inputmode="decimal" />
-          </div>
-
-          <div class="totals__line totals__line--total">
-            <span>Total</span>
-            <strong id="lblTotal">$0</strong>
+          <div class="pos-results" id="resultsList">
+            <!-- Se llenan dinámicamente -->
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- DERECHA -->
-    <aside class="section pos-aside">
-      <div class="section__head">
-        <h3 class="section__title">Cobro</h3>
-        <a class="btn" href="./cierre-caja.html">Caja diaria</a>
-      </div>
+      <!-- Columna derecha: Carrito y Cobro -->
+      <aside class="pos-aside">
+        <div class="section">
+          <div class="section__head">
+            <h3 class="section__title">Carrito</h3>
+          </div>
 
-      <div class="section pos-box">
-        <div class="row" style="justify-content:space-between;align-items:center">
-          <div>
-            <strong>Estado de Caja</strong>
-            <div class="muted" id="cashState">—</div>
+          <div class="table-wrap">
+            <table class="table" id="cartTable">
+              <colgroup>
+                <col style="width:45%">
+                <col style="width:12%">
+                <col style="width:18%">
+                <col style="width:18%">
+                <col style="width:7%">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Cant.</th>
+                  <th>Precio</th>
+                  <th>Subtotal</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Se llena dinámicamente -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="totals">
+            <div class="totals__line">
+              <span>Subtotal:</span>
+              <strong id="subtotal">$0.00</strong>
+            </div>
+            <div class="totals__line">
+              <span>Descuento:</span>
+              <strong id="discount">$0.00</strong>
+            </div>
+            <div class="totals__line totals__line--total">
+              <span>Total:</span>
+              <strong id="total">$0.00</strong>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="pay-grid">
-        <div>
-          <label for="payCash">Efectivo</label>
-          <input id="payCash" type="number" value="0" inputmode="decimal" />
-        </div>
-        <div>
-          <label for="payMP">Mercado Pago</label>
-          <input id="payMP" type="number" value="0" inputmode="decimal" />
-        </div>
-        <div>
-          <label for="payDNI">Cuenta DNI</label>
-          <input id="payDNI" type="number" value="0" inputmode="decimal" />
-        </div>
-        <div>
-          <label for="payCard">Tarjetas</label>
-          <input id="payCard" type="number" value="0" inputmode="decimal" />
-        </div>
-      </div>
-
-      <div class="section pos-box">
-        <div class="totals">
-          <div class="totals__line">
-            <span>Pagado</span>
-            <strong id="lblPaid">$0</strong>
+        <div class="section">
+          <div class="section__head">
+            <h3 class="section__title">Cobro</h3>
           </div>
-          <div class="totals__line">
-            <span>Vuelto</span>
-            <strong id="lblChange">$0</strong>
+
+          <div class="pay-grid">
+            <div>
+              <label for="payEfectivo">Efectivo</label>
+              <input id="payEfectivo" type="number" placeholder="0.00" step="0.01" />
+            </div>
+            <div>
+              <label for="payTarjeta">Tarjeta</label>
+              <input id="payTarjeta" type="number" placeholder="0.00" step="0.01" />
+            </div>
+            <div>
+              <label for="payTransferencia">Transferencia</label>
+              <input id="payTransferencia" type="number" placeholder="0.00" step="0.01" />
+            </div>
           </div>
+
+          <button class="btn btn--primary btn--block pos-pay" id="btnCobrar">
+            Cobrar
+          </button>
         </div>
-      </div>
+      </aside>
 
-      <button class="btn btn--ok pos-pay" id="btnPay" type="button">
-        Cobrar <span class="kbd">F9</span>
-      </button>
-
-      <input id="scanInput" class="scan-input" />
-    </aside>
+    </div>
   </main>
 
-  <script src="./js/app.js"></script>
-
   <script>
-    let lastResults = [];
-    App.guardPage(App.PERMS.seller_admin_owner);
-    App.ensureSeed();
+    // Mock data
+    const productos = [
+      { id: 1, nombre: 'Coca Cola 2.25L', codigo: '7790001234567', precio: 450.00, stock: 50 },
+      { id: 2, nombre: 'Azúcar Ledesma 1kg', codigo: '7790002345678', precio: 280.00, stock: 30 },
+      { id: 3, nombre: 'Arroz Gallo Oro 1kg', codigo: '7790003456789', precio: 320.00, stock: 25 },
+      { id: 4, nombre: 'Aceite Girasol Cocinero 900ml', codigo: '7790004567890', precio: 520.00, stock: 15 }
+    ];
 
-    const qName = document.getElementById("qName");
-    const qtyEl = document.getElementById("qty");
-    const results = document.getElementById("results");
-    const resultsCount = document.getElementById("resultsCount");
-    const saleHint = document.getElementById("saleHint");
+    let carrito = [];
 
-    const cartBody = document.querySelector("#cartTable tbody");
+    // Elementos DOM
+    const qName = document.getElementById('qName');
+    const qQty = document.getElementById('qQty');
+    const btnAdd = document.getElementById('btnAdd');
+    const resultsBox = document.getElementById('resultsBox');
+    const resultsList = document.getElementById('resultsList');
+    const cartTable = document.getElementById('cartTable').querySelector('tbody');
+    const subtotalEl = document.getElementById('subtotal');
+    const discountEl = document.getElementById('discount');
+    const totalEl = document.getElementById('total');
+    const btnCobrar = document.getElementById('btnCobrar');
 
-    const lblSubtotal = document.getElementById("lblSubtotal");
-    const lblTotal = document.getElementById("lblTotal");
-    const discountEl = document.getElementById("discount");
-
-    const payCash = document.getElementById("payCash");
-    const payMP = document.getElementById("payMP");
-    const payDNI = document.getElementById("payDNI");
-    const payCard = document.getElementById("payCard");
-
-    const lblPaid = document.getElementById("lblPaid");
-    const lblChange = document.getElementById("lblChange");
-
-    const scanInput = document.getElementById("scanInput");
-    const cashState = document.getElementById("cashState");
-
-    const btnPay = document.getElementById("btnPay");
-
-    let selectedProductId = null;
-    let cart = [];
-
-    function looksLikeBarcode(text){
-      const s = String(text || "").trim();
-      return /^\d{8,14}$/.test(s);
-    }
-
-    function renderCashState(){
-      const cur = App.getCurrentCashSession ? App.getCurrentCashSession() : null;
-
-      if(!cur){
-        cashState.textContent = "Sin caja (abrila desde 'Caja diaria' o Dashboard)";
+    // Búsqueda
+    qName.addEventListener('input', (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      if (q.length < 2) {
+        resultsBox.style.display = 'none';
         return;
       }
 
-      cashState.textContent = cur.open
-        ? `Abierta • ${new Date(cur.openedAt).toLocaleString("es-AR")} • Inicial: ${App.money(cur.openingAmount)}`
-        : "Cerrada (abrila desde 'Caja diaria' o Dashboard)";
-    }
+      const results = productos.filter(p => 
+        p.nombre.toLowerCase().includes(q) || 
+        p.codigo.includes(q)
+      );
 
-    function renderResults(list){
-      results.innerHTML = "";
-      const show = list.slice(0,8);
-      resultsCount.textContent = String(show.length);
-
-      show.forEach(p=>{
-        const btn = document.createElement("button");
-        btn.className = "btn pos-result";
-        btn.type = "button";
-        btn.innerHTML = `
-          <span class="pos-result__name">${p.name}</span>
-          <span class="pos-result__meta">${App.money(p.price)} • Stock: ${App.roundQty(p.stock)}</span>
-        `;
-        btn.onclick = ()=>{
-          selectedProductId = p.id;
-          App.toast("Seleccionado");
-        };
-        results.appendChild(btn);
-      });
-    }
-
-    function updateResults(){
-      const list = App.searchProductsByName(qName.value);
-      lastResults = list;
-      renderResults(list);
-      selectedProductId = list[0]?.id || null;
-    }
-
-    function cartTotals(){
-      const subtotal = cart.reduce((a,it)=>a+(it.qty*it.price),0);
-      const discount = App.num(discountEl.value);
-      const total = Math.max(0, subtotal - discount);
-      return {subtotal,total};
-    }
-
-    function paidTotal(){
-      return App.num(payCash.value)+App.num(payMP.value)+App.num(payDNI.value)+App.num(payCard.value);
-    }
-
-    function renderCart(){
-      cartBody.innerHTML="";
-      cart.forEach((it,i)=>{
-        const tr=document.createElement("tr");
-        tr.innerHTML=`
-          <td>${it.name}</td>
-          <td><strong>${App.roundQty(it.qty)}</strong></td>
-          <td>${App.money(it.price)}</td>
-          <td><strong>${App.money(it.qty*it.price)}</strong></td>
-          <td><button class="btn btn--danger" type="button" data-i="${i}">X</button></td>
-        `;
-        tr.querySelector("button").onclick=()=>{
-          cart.splice(i,1);
-          renderCart();
-          renderTotals();
-        };
-        cartBody.appendChild(tr);
-      });
-    }
-
-    function renderTotals(){
-      const {subtotal,total}=cartTotals();
-      lblSubtotal.textContent=App.money(subtotal);
-      lblTotal.textContent=App.money(total);
-
-      const paid = paidTotal();
-      lblPaid.textContent=App.money(paid);
-      lblChange.textContent=App.money(Math.max(0,paid-total));
-
-      if(total > 0 && paid > 0 && paid < total){
-        saleHint.textContent = "Pago insuficiente";
-      }else{
-        saleHint.textContent = "Listo";
+      if (results.length > 0) {
+        resultsList.innerHTML = results.map(p => `
+          <div class="pos-result" data-id="${p.id}">
+            <div class="pos-result__name">${p.nombre}</div>
+            <div class="pos-result__meta">${p.codigo} · $${p.precio.toFixed(2)} · Stock: ${p.stock}</div>
+          </div>
+        `).join('');
+        resultsBox.style.display = 'block';
+      } else {
+        resultsBox.style.display = 'none';
       }
+    });
+
+    // Click en resultado
+    resultsList.addEventListener('click', (e) => {
+      const resultEl = e.target.closest('.pos-result');
+      if (!resultEl) return;
+      const id = parseInt(resultEl.dataset.id);
+      agregarAlCarrito(id);
+      qName.value = '';
+      resultsBox.style.display = 'none';
+    });
+
+    // Enter en búsqueda
+    qName.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const results = resultsList.querySelectorAll('.pos-result');
+        if (results.length > 0) {
+          const id = parseInt(results[0].dataset.id);
+          agregarAlCarrito(id);
+          qName.value = '';
+          resultsBox.style.display = 'none';
+        }
+      }
+    });
+
+    // Botón agregar
+    btnAdd.addEventListener('click', () => {
+      const results = resultsList.querySelectorAll('.pos-result');
+      if (results.length > 0) {
+        const id = parseInt(results[0].dataset.id);
+        agregarAlCarrito(id);
+        qName.value = '';
+        resultsBox.style.display = 'none';
+      }
+    });
+
+    // Agregar al carrito
+    function agregarAlCarrito(id) {
+      const producto = productos.find(p => p.id === id);
+      if (!producto) return;
+
+      const cantidad = parseInt(qQty.value) || 1;
+      const itemExistente = carrito.find(item => item.id === id);
+
+      if (itemExistente) {
+        itemExistente.cantidad += cantidad;
+      } else {
+        carrito.push({ ...producto, cantidad });
+      }
+
+      renderCarrito();
+      calcularTotales();
     }
 
-    function addToCart(productId,qty){
-      const p=App.findProductById(productId);
-      if(!p) return;
+    // Render carrito
+    function renderCarrito() {
+      cartTable.innerHTML = carrito.map(item => `
+        <tr>
+          <td>${item.nombre}</td>
+          <td>${item.cantidad}</td>
+          <td>$${item.precio.toFixed(2)}</td>
+          <td>$${(item.precio * item.cantidad).toFixed(2)}</td>
+          <td>
+            <button class="btn btn--sm btn--danger" onclick="eliminarItem(${item.id})">×</button>
+          </td>
+        </tr>
+      `).join('');
+    }
 
-      const q=App.roundQty(qty);
-      if(q<=0) return;
+    // Eliminar item
+    function eliminarItem(id) {
+      carrito = carrito.filter(item => item.id !== id);
+      renderCarrito();
+      calcularTotales();
+    }
 
-      const existing = cart.find(it => it.productId === p.id);
-      const nextQty = existing ? App.roundQty(existing.qty + q) : q;
+    // Calcular totales
+    function calcularTotales() {
+      const subtotal = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+      const descuento = 0;
+      const total = subtotal - descuento;
 
-      if(p.stock < nextQty){
-        App.toast("Stock insuficiente");
+      subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+      discountEl.textContent = `$${descuento.toFixed(2)}`;
+      totalEl.textContent = `$${total.toFixed(2)}`;
+    }
+
+    // Cobrar
+    btnCobrar.addEventListener('click', () => {
+      if (carrito.length === 0) {
+        alert('El carrito está vacío');
         return;
       }
 
-      if(existing){
-        existing.qty = nextQty;
-      }else{
-        cart.push({productId:p.id,name:p.name,qty:q,price:p.price});
+      const total = parseFloat(totalEl.textContent.replace('$', ''));
+      const efectivo = parseFloat(document.getElementById('payEfectivo').value) || 0;
+      const tarjeta = parseFloat(document.getElementById('payTarjeta').value) || 0;
+      const transferencia = parseFloat(document.getElementById('payTransferencia').value) || 0;
+      const pagado = efectivo + tarjeta + transferencia;
+
+      if (pagado < total) {
+        alert(`Falta pagar: $${(total - pagado).toFixed(2)}`);
+        return;
       }
 
-      renderCart();
-      renderTotals();
-    }
+      const vuelto = pagado - total;
+      alert(`Venta realizada!\nVuelto: $${vuelto.toFixed(2)}`);
 
-    function tryAddByBarcodeFromQName(){
-      const raw = qName.value.trim();
-      if(!raw) return false;
-      if(!looksLikeBarcode(raw)) return false;
-
-      const p = App.findProductByBarcode(raw);
-      if(!p) return false;
-
-      addToCart(p.id, qtyEl.value || 1);
-      qName.value = "";
-      updateResults();
-      App.toast("Agregado por código");
-      return true;
-    }
-
-    document.getElementById("btnAddByName").onclick=()=>{
-      const id = selectedProductId || lastResults[0]?.id;
-      if(!id){
-        return App.toast("No hay producto para agregar (buscá y elegí uno)");
-      }
-      addToCart(id, qtyEl.value || 1);
-      qName.focus();
-      qName.select();
-    };
-
-    document.getElementById("btnClear").onclick=()=>{
-      if(!cart.length) return;
-      const ok = confirm("¿Vaciar carrito?");
-      if(!ok) return;
-      cart=[];
-      renderCart();
-      renderTotals();
-    };
-
-    document.getElementById("btnPay").onclick=()=>{
-      if(!cart.length) return App.toast("Carrito vacío");
-
-      const cur = App.getCurrentCashSession ? App.getCurrentCashSession() : null;
-      if(!cur || !cur.open){
-        return App.toast("Caja cerrada. Abrila en 'Caja diaria' o Dashboard.");
-      }
-
-      const {subtotal,total}=cartTotals();
-      const paid = paidTotal();
-
-      if(total > 0 && paid < total){
-        return App.toast("Pago insuficiente");
-      }
-
-      btnPay.disabled = true;
-
-      try{
-        const sale={
-          id:App.uid("sale"),
-          createdAt:new Date().toISOString(),
-          items:cart,
-          subtotal,
-          discount:App.num(discountEl.value),
-          total,
-          payments:{
-            cash:App.num(payCash.value),
-            mp:App.num(payMP.value),
-            dni:App.num(payDNI.value),
-            card:App.num(payCard.value),
-          }
-        };
-
-        sale.items.forEach(it=>{
-          App.recordStockMove({
-            type:"OUT",
-            productId:it.productId,
-            qty:it.qty,
-            note:"Venta mostrador",
-            refType:"SALE",
-            refId:sale.id
-          });
-        });
-
-        App.addSale(sale);
-
-        cart=[];
-        renderCart();
-
-        discountEl.value = 0;
-        payCash.value = 0;
-        payMP.value = 0;
-        payDNI.value = 0;
-        payCard.value = 0;
-
-        renderTotals();
-        renderCashState();
-        App.toast("Venta registrada");
-      }finally{
-        btnPay.disabled = false;
-      }
-    };
-
-    function focusScan(){
-      scanInput.value = "";
-      scanInput.focus();
-      App.toast("Listo para escanear (Enter agrega)");
-    }
-    document.getElementById("btnFocusScan").onclick = focusScan;
-
-    scanInput.addEventListener("keydown", (e)=>{
-      if(e.key === "Enter"){
-        e.preventDefault();
-        const code = scanInput.value.trim();
-        const p = App.findProductByBarcode(code);
-        if(!p) return App.toast("Código no encontrado");
-        addToCart(p.id, qtyEl.value || 1);
-        focusScan();
-      }
+      // Limpiar
+      carrito = [];
+      renderCarrito();
+      calcularTotales();
+      document.getElementById('payEfectivo').value = '';
+      document.getElementById('payTarjeta').value = '';
+      document.getElementById('payTransferencia').value = '';
     });
-
-    qName.addEventListener("input", () => {
-      if(looksLikeBarcode(qName.value)) return;
-      updateResults();
-    });
-
-    qName.addEventListener("keydown", (e) => {
-      if(e.key !== "Enter") return;
-      e.preventDefault();
-
-      if(tryAddByBarcodeFromQName()) return;
-      document.getElementById("btnAddByName").click();
-    });
-
-    document.addEventListener("keydown", (e)=>{
-      if(e.key === "F2"){ e.preventDefault(); focusScan(); }
-      if(e.key === "F9"){ e.preventDefault(); btnPay.click(); }
-    });
-
-    [discountEl,payCash,payMP,payDNI,payCard].forEach(el=>el.addEventListener("input",renderTotals));
-
-    updateResults();
-    renderCart();
-    renderTotals();
-    renderCashState();
   </script>
 </body>
 </html>
