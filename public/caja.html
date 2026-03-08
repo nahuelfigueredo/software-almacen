@@ -159,7 +159,19 @@
       font-weight: 700 !important;
     }
 
-    /* Optimizar columna derecha (aside) */
+    .pos-status {
+      padding: 12px;
+      font-size: 13px;
+    }
+
+    .pos-status--loading {
+      color: #64748b;
+    }
+
+    .pos-status--empty {
+      color: #94a3b8;
+    }
+
     .pos-aside {
       position: sticky !important;
       top: 70px !important;
@@ -407,6 +419,10 @@
       }
 
       clearTimeout(searchTimeout);
+
+      resultsList.innerHTML = '<div class="pos-status pos-status--loading">Buscando...</div>';
+      resultsBox.style.display = 'block';
+
       searchTimeout = setTimeout(async () => {
         const results = await buscarProductos(q);
 
@@ -422,7 +438,8 @@
           `).join('');
           resultsBox.style.display = 'block';
         } else {
-          resultsBox.style.display = 'none';
+          resultsList.innerHTML = '<div class="pos-status pos-status--empty">No se encontraron productos</div>';
+          resultsBox.style.display = 'block';
         }
       }, SEARCH_DEBOUNCE_MS);
     });
@@ -545,12 +562,12 @@
         return;
       }
 
-      // Determinar método de pago principal
+      // Determinar método de pago principal (usar valores en inglés que acepta la DB)
       const metodos = [];
-      if (efectivo > 0) metodos.push('efectivo');
-      if (tarjeta > 0) metodos.push('tarjeta');
-      if (transferencia > 0) metodos.push('transferencia');
-      const paymentMethod = metodos.length > 1 ? 'mixto' : (metodos[0] || 'efectivo');
+      if (efectivo > 0) metodos.push('cash');
+      if (tarjeta > 0) metodos.push('card');
+      if (transferencia > 0) metodos.push('transfer');
+      const paymentMethod = metodos.length > 1 ? 'mixed' : (metodos[0] || 'cash');
 
       try {
         btnCobrar.disabled = true;
