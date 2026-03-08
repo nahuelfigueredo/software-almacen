@@ -81,8 +81,8 @@ router.post('/', (req, res) => {
 
       // Insertar items y actualizar stock
       const insertItem = db.prepare(`
-        INSERT INTO sale_items (sale_id, product_id, quantity, price)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO sale_items (sale_id, product_id, quantity, price, subtotal)
+        VALUES (?, ?, ?, ?, ?)
       `);
       const getProduct = db.prepare(`SELECT stock FROM products WHERE id = ?`);
       const updateStock = db.prepare(`
@@ -95,7 +95,7 @@ router.post('/', (req, res) => {
       `);
 
       for (const item of items) {
-        insertItem.run(saleId, item.product_id, Number(item.quantity), Number(item.price));
+        insertItem.run(saleId, item.product_id, Number(item.quantity), Number(item.price), Number(item.quantity) * Number(item.price));
 
         const product = getProduct.get(item.product_id);
         if (product) {
