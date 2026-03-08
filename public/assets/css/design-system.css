@@ -1,0 +1,212 @@
+:root {
+  /* Colores MCN (del logo existente) */
+  --mcn-primary: #2BB3F3;
+  --mcn-primary-light: #7CE8FF;
+  --mcn-primary-dark: #0A66C2;
+  --mcn-gradient: linear-gradient(135deg, #7CE8FF, #2BB3F3, #0A66C2);
+
+  /* Colores semánticos */
+  --success: #16a34a;
+  --danger: #dc2626;
+  --warning: #f59e0b;
+  --info: #0ea5e9;
+
+  /* Neutrales */
+  --bg: #f6f7fb;
+  --card: #ffffff;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+
+  /* Sombras */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow: 0 4px 6px rgba(0,0,0,0.07);
+  --shadow-lg: 0 10px 30px rgba(2,8,23,0.08);
+
+  /* Espaciados */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* Bordes */
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* Transiciones */
+  --transition: all 0.2s ease;
+}
+
+/* ── Modo oscuro ───────────────────────────────────── */
+[data-theme="dark"] {
+  --bg: #0f172a;
+  --card: #1e293b;
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --border: #334155;
+}
+
+/* ── Logo MCN ──────────────────────────────────────── */
+.brand__logo-img {
+  height: 48px;
+  width: auto;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+.page-watermark {
+  position: fixed;
+  right: 5%;
+  bottom: 10%;
+  width: 400px;
+  opacity: 0.03;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.page-watermark img {
+  width: 100%;
+  height: auto;
+}
+
+/* ── Theme toggle button ───────────────────────────── */
+.theme-toggle {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  padding: 6px 10px;
+  font-size: 18px;
+  line-height: 1;
+  transition: var(--transition);
+  color: var(--text);
+}
+
+.theme-toggle:hover {
+  background: var(--border);
+}
+
+/* ── KPI Grid ──────────────────────────────────────── */
+.kpi-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.kpi-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+
+.kpi-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-1px);
+}
+
+.kpi-card__icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.kpi-card__label {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.kpi-card__value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.kpi-card__value.alert {
+  color: var(--danger);
+}
+
+.kpi-card__change {
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.kpi-card__change.positive {
+  color: var(--success);
+}
+
+.kpi-card__change.negative {
+  color: var(--danger);
+}
+
+/* ── Charts Grid ───────────────────────────────────── */
+.charts-grid {
+  display: grid;
+  gap: 14px;
+  margin-top: var(--space-lg);
+}
+
+.chart-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow);
+}
+
+.chart-card h3 {
+  margin: 0 0 var(--space-md);
+  font-size: 15px;
+  color: var(--text);
+}
+
+/* ── Responsive ────────────────────────────────────── */
+
+/* Mobile First */
+@media (max-width: 768px) {
+  .header__inner {
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .brand__logo-img {
+    height: 36px;
+  }
+}
+
+/* Tablet */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .charts-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop */
+@media (min-width: 1025px) {
+  .kpi-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .charts-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

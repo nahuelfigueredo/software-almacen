@@ -1,12 +1,33 @@
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
+const rateLimit = require("express-rate-limit");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
+
+// ====== BASE DE DATOS SQLITE ======
+require("./src/database/init");
+
+// ====== RATE LIMITING ======
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minuto
+  max: 200,            // máximo 200 solicitudes por ventana
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Demasiadas solicitudes, intente de nuevo en un minuto." }
+});
+app.use("/api/", apiLimiter);
+
+// ====== API ROUTES ======
+app.use("/api/products", require("./src/routes/products"));
+app.use("/api/sales",    require("./src/routes/sales"));
+app.use("/api/users",    require("./src/routes/users"));
+app.use("/api/stock",    require("./src/routes/stock"));
+app.use("/api/reports",  require("./src/routes/reports"));
 
 // ====== DEMO TRACKING (MVP) ======
 const ADMIN_KEY = process.env.DEMO_ADMIN_KEY || "mcndigitalstudio";
@@ -73,5 +94,6 @@ app.get("/admin/demo-stats", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`🎨 MCN Digital Studio - Sistema de Caja`);
 });
