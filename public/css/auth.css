@@ -17,7 +17,8 @@
 .auth-hero h2{
   margin:0;
   font-size:28px;
-  letter-spacing:-.02em;
+  letter-spacing:-.03em;
+  line-height: 1.25;
 }
 
 .auth-hero p{
@@ -26,7 +27,9 @@
 
 /* Card block inside section */
 .auth-card{
-  padding:14px;
+  padding:18px;
+  position:relative;
+  overflow:hidden;
 }
 
 /* Actions row */
@@ -39,9 +42,10 @@
 
 /* PIN input */
 .pin-input{
-  letter-spacing: .25em;
+  letter-spacing: .30em;
   font-weight: 700;
-  font-size: 18px;
+  font-size: 20px;
+  text-align: center;
 }
 
 /* Small monospace hint */
@@ -80,13 +84,18 @@
 .welcome-logo{
   display:flex;
   justify-content:center;
-  margin: 6px 0 14px;
+  margin: 6px 0 18px;
 }
 .welcome-logo__img{
   width: 200px;
   height: 200px;
   object-fit: contain;
-  filter: drop-shadow(0 8px 18px rgba(0,0,0,.25));
+  filter: drop-shadow(0 8px 24px rgba(14,165,233,.30));
+  transition: filter 200ms ease, transform 200ms ease;
+}
+.welcome-logo__img:hover{
+  filter: drop-shadow(0 12px 32px rgba(14,165,233,.40));
+  transform: scale(1.03);
 }
 
 /* Centrar el login (si no lo tenías ya) */
