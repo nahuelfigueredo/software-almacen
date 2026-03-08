@@ -117,10 +117,11 @@ router.get('/hourly', (req, res) => {
 router.get('/low-stock', (req, res) => {
   try {
     const products = db.prepare(`
-      SELECT id, name, category, stock, min_stock
-      FROM products
-      WHERE active = 1 AND stock <= min_stock
-      ORDER BY stock ASC
+      SELECT p.id, p.name, c.name as category, p.stock, p.min_stock
+      FROM products p
+      LEFT JOIN categories c ON p.category_id = c.id
+      WHERE p.active = 1 AND p.stock <= p.min_stock
+      ORDER BY p.stock ASC
     `).all();
 
     res.json(products);
