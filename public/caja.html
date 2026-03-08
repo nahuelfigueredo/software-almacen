@@ -14,6 +14,64 @@
   <link rel="stylesheet" href="/assets/css/design-system.css">
   
   <style>
+    /* Header styles */
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .top__left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .top__right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .top__title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .top__user {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: transparent;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+
+    .theme-toggle:hover {
+      background: var(--hover);
+    }
+
+    .theme-toggle__icon {
+      font-size: 16px;
+    }
+
+    .theme-toggle__label {
+      font-size: 13px;
+    }
+
     /* Estilos ultra-compactos para POS */
     .section {
       padding: 10px !important;
