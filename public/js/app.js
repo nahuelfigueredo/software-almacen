@@ -80,9 +80,38 @@ function getProducts(){ return loadJSON(LS_KEYS.PRODUCTS, []); }
 function setProducts(list){ saveJSON(LS_KEYS.PRODUCTS, list); }
 function findProductById(id){ return getProducts().find(p => p.id === id) || null; }
 function findProductByBarcode(code){
-  const c = String(code || "").trim();
-  if(!c) return null;
-  return getProducts().find(p => String(p.barcode || "").trim() === c) || null;
+  const c = String(code || "").trim().toLowerCase();
+  if(!c) {
+    console.warn('findProductByBarcode: código vacío');
+    return null;
+  }
+
+  console.log('Buscando producto con código:', c);
+
+  const allProducts = getProducts();
+  const product = allProducts.find(p => {
+    const barcode = String(p.barcode || "").trim().toLowerCase();
+    return barcode === c && p.active !== false;
+  });
+
+  if (!product) {
+    // Verificar si existe pero está inactivo
+    const inactiveProduct = allProducts.find(p => {
+      const barcode = String(p.barcode || "").trim().toLowerCase();
+      return barcode === c;
+    });
+
+    if (inactiveProduct) {
+      console.warn('Producto encontrado pero está inactivo:', inactiveProduct);
+      return { error: 'inactive', product: inactiveProduct };
+    }
+
+    console.warn('No se encontró producto con código:', c);
+    return { error: 'not_found', code: c };
+  }
+
+  console.log('Producto encontrado:', product.name);
+  return product;
 }
 function searchProductsByName(q){
   const s = String(q || "").trim().toLowerCase();

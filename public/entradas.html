@@ -227,9 +227,21 @@
       if(e.key === "Enter"){
         e.preventDefault();
         const code = scanInput.value.trim();
-        const p = App.findProductByBarcode(code);
-        if(!p) return App.toast("Código no encontrado");
-        setSelected(p);
+        const result = App.findProductByBarcode(code);
+
+        if(!result) {
+          return App.toast("Código vacío o inválido");
+        }
+
+        if(result.error === 'not_found') {
+          return App.toast(`Código no encontrado: ${result.code}`);
+        }
+
+        if(result.error === 'inactive') {
+          return App.toast(`Producto "${result.product.name}" está inactivo`);
+        }
+
+        setSelected(result);
         App.toast("Producto seleccionado por código");
         focusScan();
       }
