@@ -328,15 +328,12 @@
   </main>
 
   <script>
-    // Mock data
-    const productos = [
-      { id: 1, nombre: 'Coca Cola 2.25L', codigo: '7790001234567', precio: 450.00, stock: 50 },
-      { id: 2, nombre: 'Azúcar Ledesma 1kg', codigo: '7790002345678', precio: 280.00, stock: 30 },
-      { id: 3, nombre: 'Arroz Gallo Oro 1kg', codigo: '7790003456789', precio: 320.00, stock: 25 },
-      { id: 4, nombre: 'Aceite Girasol Cocinero 900ml', codigo: '7790004567890', precio: 520.00, stock: 15 }
-    ];
-
     let carrito = [];
+    let searchTimeout;
+    // Map to store search results by id, avoiding JSON in HTML attributes
+    const productosCache = new Map();
+
+    const SEARCH_DEBOUNCE_MS = 300;
 
     // Elementos DOM
     const qName = document.getElementById('qName');
@@ -350,38 +347,98 @@
     const totalEl = document.getElementById('total');
     const btnCobrar = document.getElementById('btnCobrar');
 
-    // Búsqueda
+    // Escapa caracteres HTML especiales para prevenir XSS al insertar en innerHTML
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // Normaliza un producto de la API al formato del frontend
+    function normalizeProducto(p) {
+      return {
+        id: Number(p.id),
+        nombre: p.name,
+        codigo: p.barcode || '',
+        precio: Number(p.price),
+        stock: Number(p.stock)
+      };
+    }
+
+    // Buscar productos en la API
+    async function buscarProductos(query) {
+      try {
+        const response = await fetch(`/api/products?search=${encodeURIComponent(query)}`);
+        if (!response.ok) throw new Error(`Error del servidor (HTTP ${response.status})`);
+        const data = await response.json();
+        return (data.data || []).map(normalizeProducto);
+      } catch (error) {
+        console.error('Error al buscar productos:', error);
+        resultsList.innerHTML = `<div class="pos-result"><div class="pos-result__name">No se pudo conectar con el servidor</div></div>`;
+        resultsBox.style.display = 'block';
+        return [];
+      }
+    }
+
+    // Guardar venta en la base de datos
+    async function guardarVenta(ventaData) {
+      const response = await fetch('/api/sales', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(ventaData)
+      });
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || `Error del servidor (HTTP ${response.status})`);
+      }
+      return await response.json();
+    }
+
+    // Búsqueda con debounce
     qName.addEventListener('input', (e) => {
-      const q = e.target.value.trim().toLowerCase();
+      const q = e.target.value.trim();
+
       if (q.length < 2) {
         resultsBox.style.display = 'none';
         return;
       }
 
-      const results = productos.filter(p => 
-        p.nombre.toLowerCase().includes(q) || 
-        p.codigo.includes(q)
-      );
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(async () => {
+        const results = await buscarProductos(q);
 
-      if (results.length > 0) {
-        resultsList.innerHTML = results.map(p => `
-          <div class="pos-result" data-id="${p.id}">
-            <div class="pos-result__name">${p.nombre}</div>
-            <div class="pos-result__meta">${p.codigo} · $${p.precio.toFixed(2)} · Stock: ${p.stock}</div>
-          </div>
-        `).join('');
-        resultsBox.style.display = 'block';
-      } else {
-        resultsBox.style.display = 'none';
-      }
+        if (results.length > 0) {
+          productosCache.clear();
+          results.forEach(p => productosCache.set(p.id, p));
+
+          resultsList.innerHTML = results.map(p => `
+            <div class="pos-result" data-id="${p.id}">
+              <div class="pos-result__name">${escapeHtml(p.nombre)}</div>
+              <div class="pos-result__meta">${escapeHtml(p.codigo || 'Sin código')} · $${p.precio.toFixed(2)} · Stock: ${p.stock}</div>
+            </div>
+          `).join('');
+          resultsBox.style.display = 'block';
+        } else {
+          resultsBox.style.display = 'none';
+        }
+      }, SEARCH_DEBOUNCE_MS);
     });
+
+    function getProductoFromResult(resultEl) {
+      const id = Number(resultEl.dataset.id);
+      return productosCache.get(id) || null;
+    }
 
     // Click en resultado
     resultsList.addEventListener('click', (e) => {
       const resultEl = e.target.closest('.pos-result');
       if (!resultEl) return;
-      const id = parseInt(resultEl.dataset.id);
-      agregarAlCarrito(id);
+      const producto = getProductoFromResult(resultEl);
+      if (!producto) return;
+      agregarAlCarrito(producto);
       qName.value = '';
       resultsBox.style.display = 'none';
     });
@@ -389,34 +446,43 @@
     // Enter en búsqueda
     qName.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
-        const results = resultsList.querySelectorAll('.pos-result');
-        if (results.length > 0) {
-          const id = parseInt(results[0].dataset.id);
-          agregarAlCarrito(id);
-          qName.value = '';
-          resultsBox.style.display = 'none';
+        const firstResult = resultsList.querySelector('.pos-result');
+        if (firstResult) {
+          const producto = getProductoFromResult(firstResult);
+          if (producto) {
+            agregarAlCarrito(producto);
+            qName.value = '';
+            resultsBox.style.display = 'none';
+          }
         }
       }
     });
 
     // Botón agregar
     btnAdd.addEventListener('click', () => {
-      const results = resultsList.querySelectorAll('.pos-result');
-      if (results.length > 0) {
-        const id = parseInt(results[0].dataset.id);
-        agregarAlCarrito(id);
-        qName.value = '';
-        resultsBox.style.display = 'none';
+      const firstResult = resultsList.querySelector('.pos-result');
+      if (firstResult) {
+        const producto = getProductoFromResult(firstResult);
+        if (producto) {
+          agregarAlCarrito(producto);
+          qName.value = '';
+          resultsBox.style.display = 'none';
+        }
       }
     });
 
-    // Agregar al carrito
-    function agregarAlCarrito(id) {
-      const producto = productos.find(p => p.id === id);
+    // Agregar al carrito con validación de stock
+    function agregarAlCarrito(producto) {
       if (!producto) return;
 
       const cantidad = parseInt(qQty.value) || 1;
-      const itemExistente = carrito.find(item => item.id === id);
+      const itemExistente = carrito.find(item => item.id === producto.id);
+
+      const cantidadTotal = itemExistente ? itemExistente.cantidad + cantidad : cantidad;
+      if (cantidadTotal > producto.stock) {
+        alert(`⚠️ Stock insuficiente. Disponible: ${producto.stock}`);
+        return;
+      }
 
       if (itemExistente) {
         itemExistente.cantidad += cantidad;
@@ -432,7 +498,7 @@
     function renderCarrito() {
       cartTable.innerHTML = carrito.map(item => `
         <tr>
-          <td>${item.nombre}</td>
+          <td>${escapeHtml(item.nombre)}</td>
           <td>${item.cantidad}</td>
           <td>$${item.precio.toFixed(2)}</td>
           <td>$${(item.precio * item.cantidad).toFixed(2)}</td>
@@ -462,7 +528,7 @@
     }
 
     // Cobrar
-    btnCobrar.addEventListener('click', () => {
+    btnCobrar.addEventListener('click', async () => {
       if (carrito.length === 0) {
         alert('El carrito está vacío');
         return;
@@ -479,16 +545,45 @@
         return;
       }
 
-      const vuelto = pagado - total;
-      alert(`Venta realizada!\nVuelto: $${vuelto.toFixed(2)}`);
+      // Determinar método de pago principal
+      const metodos = [];
+      if (efectivo > 0) metodos.push('efectivo');
+      if (tarjeta > 0) metodos.push('tarjeta');
+      if (transferencia > 0) metodos.push('transferencia');
+      const paymentMethod = metodos.length > 1 ? 'mixto' : (metodos[0] || 'efectivo');
 
-      // Limpiar
-      carrito = [];
-      renderCarrito();
-      calcularTotales();
-      document.getElementById('payEfectivo').value = '';
-      document.getElementById('payTarjeta').value = '';
-      document.getElementById('payTransferencia').value = '';
+      try {
+        btnCobrar.disabled = true;
+
+        const ventaData = {
+          total: total,
+          payment_method: paymentMethod,
+          items: carrito.map(item => ({
+            product_id: item.id,
+            quantity: item.cantidad,
+            price: item.precio
+          }))
+        };
+
+        const venta = await guardarVenta(ventaData);
+
+        const ticketId = Number.isInteger(Number(venta.id)) ? Number(venta.id) : 'N/A';
+        const vuelto = pagado - total;
+        alert(`✅ Venta realizada!\nVuelto: $${vuelto.toFixed(2)}\nTicket: #${ticketId}`);
+
+        // Limpiar
+        carrito = [];
+        renderCarrito();
+        calcularTotales();
+        document.getElementById('payEfectivo').value = '';
+        document.getElementById('payTarjeta').value = '';
+        document.getElementById('payTransferencia').value = '';
+      } catch (error) {
+        alert(`❌ Error al procesar la venta: ${error.message}`);
+        console.error('Error:', error);
+      } finally {
+        btnCobrar.disabled = false;
+      }
     });
   </script>
   <script>
