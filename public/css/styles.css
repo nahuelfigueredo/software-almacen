@@ -1041,3 +1041,34 @@ button.btn{
   cursor: pointer;
   font: inherit;
 }
+
+/* ====================================
+   HEADER LAYOUT FIX
+   ==================================== */
+
+/* Right side of header - CRITICAL FIX */
+.top__right,
+.row {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Responsive behavior */
+@media (max-width: 768px) {
+  .top__inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .top__right,
+  .row {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .theme-toggle__label {
+    display: none;
+  }
+}
