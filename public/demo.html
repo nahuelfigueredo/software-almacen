@@ -2,6 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Demo • Almacén</title>
   <link rel="stylesheet" href="./css/styles.css">
@@ -100,11 +103,14 @@
 
 </main>
 
+<script src="./assets/js/auth.js"></script>
 <script src="./js/app.js"></script>
 <script>
 (() => {
-  // Si querés que sea solo Dueño, descomentá:
-  // App.guardPage(App.PERMS.owner_only);
+  if (!authService.isAuthenticated()) {
+    location.replace('./login.html?next=demo.html');
+  }
+  App.guardPage(App.PERMS.owner_only);
 
   const kProducts = document.getElementById("kProducts");
   const kSales = document.getElementById("kSales");

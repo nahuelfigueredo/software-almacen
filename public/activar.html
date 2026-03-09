@@ -2,6 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Activar licencia</title>
   <link rel="stylesheet" href="./css/styles.css">
@@ -41,8 +44,14 @@
   </section>
 </main>
 
+<script src="./assets/js/auth.js"></script>
 <script src="./js/app.js"></script>
 <script>
+  if (!authService.isAuthenticated()) {
+    location.replace('./login.html?next=activar.html');
+  }
+  App.guardPage(App.PERMS.owner_only);
+
   const state = document.getElementById("state");
   const token = document.getElementById("token");
 
