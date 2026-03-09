@@ -27,7 +27,7 @@ app.use("/api/", apiLimiter);
 app.use("/api/auth", require("./src/routes/auth"));
 
 // ====== MIDDLEWARE DE AUTENTICACIÓN PARA RUTAS API ======
-app.use("/api/", authenticate);
+app.use("/api", authenticate);
 
 // ====== API ROUTES ======
 app.use("/api/products", require("./src/routes/products"));
@@ -47,9 +47,9 @@ function appendJSONL(obj) {
   fs.appendFileSync(LOG_FILE, JSON.stringify(obj) + "\n", "utf8");
 }
 
-app.post("/api/track/login", (req, res) => {
+app.post("/api/track/login", authenticate, (req, res) => {
   try {
-    const { prospectId, role, name } = req.body || {};
+    const user = req.user;
     const ip =
       (req.headers["x-forwarded-for"] || "").split(",")[0].trim() ||
       req.socket.remoteAddress;
@@ -57,9 +57,9 @@ app.post("/api/track/login", (req, res) => {
     const event = {
       t: new Date().toISOString(),
       type: "login",
-      prospectId: String(prospectId || "unknown"),
-      role: String(role || "unknown"),
-      name: String(name || "unknown"),
+      prospectId: String(user.id || "unknown"),
+      role: String(user.role || "unknown"),
+      name: String(user.name || "unknown"),
       ip,
       ua: req.headers["user-agent"] || ""
     };
