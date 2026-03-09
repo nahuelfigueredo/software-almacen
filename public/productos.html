@@ -46,8 +46,7 @@
         <a class="btn" href="./index.html">Volver</a>
         <a class="btn btn--primary" href="./caja.html">Ir a Caja</a>
         <!-- BOTÓN / LINK: Cambiar usuario (PIN) -->
-<a class="btn" href="#" id="btnCambiarUsuario">Cambiar usuario (PIN)</a>
-
+        <a class="btn" href="#" id="btnCambiarUsuario">Cambiar usuario (PIN)</a>
       </div>
     </div>
   </header>
@@ -90,7 +89,7 @@
       </div>
 
       <div class="muted mt-10">
-        Tip: si usás lector USB, podés completar “Código de barras” escaneando dentro del input.
+        Tip: si usás lector USB, podés completar "Código de barras" escaneando dentro del input.
       </div>
     </section>
 
@@ -156,7 +155,7 @@
       </div>
 
       <div class="muted mt-10">
-        Recomendación: definí “mínimo” para que “Bajo stock” sea útil.
+        Recomendación: definí "mínimo" para que "Bajo stock" sea útil.
       </div>
     </aside>
   </main>
@@ -242,7 +241,7 @@
         const params = new URLSearchParams();
         if(text) params.set("search", text);
 
-        const resp = await fetch("/api/products?" + params.toString());
+        const resp = await authService.fetch("/api/products?" + params.toString());
         if(!resp.ok) throw new Error("Error del servidor");
         const data = await resp.json();
 
@@ -307,7 +306,7 @@
       const method = isUpdate ? "PUT" : "POST";
 
       try {
-        const resp = await fetch(url, {
+        const resp = await authService.fetch(url, {
           method,
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(p)
@@ -335,7 +334,7 @@
       if(!ok) return;
 
       try {
-        const resp = await fetch(`/api/products/${id}`, { method: "DELETE" });
+        const resp = await authService.fetch(`/api/products/${id}`, { method: "DELETE" });
         if(!resp.ok){
           const data = await resp.json();
           return App.toast(data.error || "Error al eliminar");
@@ -355,7 +354,6 @@
     render();
     setForm(null);
 
-
     
   (function wirePinButton(){
     function bind(){
@@ -372,15 +370,15 @@
         if(!confirm("¿Cambiar de usuario (volver a PIN)?")) return;
 
         try{
-          if(window.App && typeof App.logout === "function"){
+          if(window.authService && typeof authService.logout === "function"){
+            authService.logout();
+          }else if(window.App && typeof App.logout === "function"){
             App.logout();
           }else{
-            localStorage.removeItem("almacen_session_v1");
+            localStorage.clear();
+            location.href = "./login.html";
           }
         }catch(_e){}
-
-        var next = encodeURIComponent(location.pathname.split("/").pop() || "index.html");
-        location.href = "./login.html?next=" + next;
       });
     }
 
