@@ -23,8 +23,8 @@
       <div class="brand">
         <div class="brand__logo" aria-hidden="true">A</div>
         <div>
-          <div class="brand__name">Ingresar con PIN</div>
-          <div class="brand__sub">Dueño / Admin / Vendedora</div>
+          <div class="brand__name">Login JWT</div>
+          <div class="brand__sub">Sistema Seguro</div>
         </div>
       </div>
 
@@ -33,16 +33,18 @@
           <span class="theme-toggle__icon">🌙</span>
           <span class="theme-toggle__label">Oscuro</span>
         </button>
-        <a class="btn" href="./index.html">Volver</a>
       </div>
     </div>
   </header>
 
   <main class="wrap auth-center" style="max-width:520px">
     <section class="section">
-      <h2 style="margin:0 0 10px">PIN</h2>
-      <div class="muted" style="margin-bottom:12px" id="nextLbl">—</div>
+      <h2 style="margin:0 0 10px">Login Seguro</h2>
+      <div class="muted" style="margin-bottom:12px">
+        Demo: Dueño (9999) | Administrador (1234) | Cajero (0000)
+      </div>
 
+<<<<<<< HEAD
       <div class="row" style="gap:10px;align-items:end;flex-wrap:wrap">
         <div style="flex:1;min-width:220px">
           <label for="userName">Usuario</label>
@@ -53,64 +55,101 @@
         <div style="flex:1;min-width:220px">
           <label for="pin">PIN</label>
           <input id="pin" class="pin-input" type="password" inputmode="numeric" autocomplete="one-time-code" placeholder="••••" />
+=======
+      <form id="loginForm">
+        <div style="margin-bottom:12px">
+          <label for="username">Usuario</label>
+          <input id="username" type="text" placeholder="Administrador" value="Administrador" required />
+>>>>>>> 21dbd19 (Fix: JWT authentication flow across all pages)
         </div>
-        <button class="btn btn--primary" id="btnLogin" type="button">Entrar</button>
-      </div>
 
-      <div class="muted" style="margin-top:10px">
-        Enter para ingresar.
-      </div>
-
-      <div class="section" style="margin-top:14px;padding:12px" id="meBox" hidden>
-        <div class="muted">Ya hay una sesión activa</div>
-        <div style="margin-top:6px"><strong id="meLbl">—</strong></div>
-        <div class="row" style="margin-top:12px;gap:10px;flex-wrap:wrap">
-          <button class="btn btn--danger" id="btnLogout" type="button">Cerrar sesión</button>
-          <button class="btn" id="btnContinue" type="button">Continuar</button>
+        <div style="margin-bottom:12px">
+          <label for="pin">PIN</label>
+          <input id="pin" type="password" inputmode="numeric" placeholder="1234" required />
         </div>
-      </div>
+
+        <button class="btn btn--primary" id="btnLogin" type="submit" style="width:100%">
+          🔓 Entrar
+        </button>
+      </form>
+
+      <div id="status" style="margin-top:16px;padding:12px;border-radius:6px;display:none"></div>
     </section>
   </main>
 
+<<<<<<< HEAD
   <script src="./assets/js/auth.js"></script>
   <script src="./js/app.js"></script>
+=======
+  <!-- JWT Auth Service -->
+  <script src="/assets/js/auth.js"></script>
+  
+>>>>>>> 21dbd19 (Fix: JWT authentication flow across all pages)
   <script>
-    App.ensureAuthSeed();
+    const form = document.getElementById('loginForm');
+    const usernameInput = document.getElementById('username');
+    const pinInput = document.getElementById('pin');
+    const btnLogin = document.getElementById('btnLogin');
+    const status = document.getElementById('status');
 
-    function roleLabel(role){
-      if(role === "owner") return "Dueño";
-      if(role === "admin") return "Admin";
-      if(role === "seller") return "Vendedora";
-      return role || "-";
+    function showStatus(message, type = 'info') {
+      status.textContent = message;
+      status.style.display = 'block';
+      status.style.background = type === 'error' ? '#ff000020' : '#00ff0020';
+      status.style.borderLeft = type === 'error' ? '3px solid red' : '3px solid green';
+      console.log(type === 'error' ? '❌' : '✅', message);
     }
 
-    const pin = document.getElementById("pin");
-    const btnLogin = document.getElementById("btnLogin");
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const username = usernameInput.value.trim();
+      const pin = pinInput.value.trim();
 
-    const meBox = document.getElementById("meBox");
-    const meLbl = document.getElementById("meLbl");
-    const btnLogout = document.getElementById("btnLogout");
-    const btnContinue = document.getElementById("btnContinue");
+      console.log('=== INICIO LOGIN ===');
+      console.log('Usuario:', username);
+      console.log('PIN length:', pin.length);
 
-    // ✅ si no viene next, mandamos según el rol (seller -> caja)
-    const params = new URLSearchParams(location.search);
-    const nextParam = params.get("next"); // puede venir null
+      btnLogin.disabled = true;
+      btnLogin.textContent = '⏳ Ingresando...';
 
-    function defaultNextFor(me){
-      if(me?.role === "seller") return "caja.html";
-      return "index.html"; // admin/owner
-    }
+      try {
+        showStatus('Conectando con el servidor...', 'info');
+        
+        console.log('Llamando a authService.login()...');
+        const user = await authService.login(username, pin);
+        
+        console.log('✅ Respuesta del servidor:', user);
+        showStatus(`¡Bienvenido ${user.name}!`, 'success');
 
+<<<<<<< HEAD
     function targetFromSession(){
       const me = authService.getCurrentUser();
       return nextParam || defaultNextFor(me);
     }
+=======
+        // Verificar que se guardaron los tokens
+        const token = localStorage.getItem('accessToken');
+        console.log('Token guardado:', token ? 'SÍ' : 'NO');
+        console.log('Token length:', token ? token.length : 0);
+>>>>>>> 21dbd19 (Fix: JWT authentication flow across all pages)
 
-    function goNext(){
-      const target = targetFromSession();
-      location.replace("./" + String(target).replace(/^\.\//, ""));
-    }
+        // FORZAR redirección después de 1 segundo
+        console.log('Esperando 1 segundo antes de redirigir...');
+        setTimeout(() => {
+          const targetPage = user.role === 'cashier' ? 'caja.html' : 'index.html';
+          console.log('🔀 Redirigiendo a:', targetPage);
+          
+          // Intentar múltiples métodos de redirección
+          try {
+            window.location.href = './' + targetPage;
+          } catch (err) {
+            console.error('Error con href, intentando replace...');
+            window.location.replace('./' + targetPage);
+          }
+        }, 1000);
 
+<<<<<<< HEAD
     document.getElementById("nextLbl").textContent =
       `Al ingresar vas a ir a: ${nextParam || "según tu usuario"}`;
 
@@ -239,41 +278,50 @@
     // DARK MODE TOGGLE
     // ============================================
 
+=======
+      } catch (error) {
+        console.error('❌ ERROR COMPLETO:', error);
+        showStatus('Error: ' + (error.message || 'Usuario o PIN incorrectos'), 'error');
+        pinInput.focus();
+        pinInput.select();
+      } finally {
+        setTimeout(() => {
+          btnLogin.disabled = false;
+          btnLogin.textContent = '🔓 Entrar';
+        }, 2000);
+      }
+    });
+
+    // Dark mode toggle
+>>>>>>> 21dbd19 (Fix: JWT authentication flow across all pages)
     const themeToggle = document.getElementById('themeToggle');
     const html = document.documentElement;
-
-    // Get saved theme or default to light
     const savedTheme = localStorage.getItem('theme') || 'light';
     html.setAttribute('data-theme', savedTheme);
-    updateToggleButton(savedTheme);
 
-    // Toggle theme on button click
     if (themeToggle) {
       themeToggle.addEventListener('click', () => {
         const currentTheme = html.getAttribute('data-theme');
         const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-
         html.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
-        updateToggleButton(newTheme);
+        
+        const icon = themeToggle.querySelector('.theme-toggle__icon');
+        const label = themeToggle.querySelector('.theme-toggle__label');
+        if (newTheme === 'dark') {
+          icon.textContent = '☀️';
+          label.textContent = 'Claro';
+        } else {
+          icon.textContent = '🌙';
+          label.textContent = 'Oscuro';
+        }
       });
     }
 
-    // Update button icon and text
-    function updateToggleButton(theme) {
-      if (!themeToggle) return;
-
-      const icon = themeToggle.querySelector('.theme-toggle__icon');
-      const label = themeToggle.querySelector('.theme-toggle__label');
-
-      if (theme === 'dark') {
-        icon.textContent = '☀️';
-        label.textContent = 'Claro';
-      } else {
-        icon.textContent = '🌙';
-        label.textContent = 'Oscuro';
-      }
-    }
+    // Focus on PIN
+    pinInput.focus();
+    console.log('🚀 Login page cargada');
+    console.log('🔧 authService disponible:', typeof authService !== 'undefined');
   </script>
 </body>
 </html>
