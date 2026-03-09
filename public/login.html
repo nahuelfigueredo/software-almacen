@@ -14,7 +14,7 @@
 
   <link rel="stylesheet" href="./css/styles.css">
   <link rel="stylesheet" href="./css/auth.css">
-  <link rel="stylesheet" href="/assets/css/design-system.css">
+  <link rel="stylesheet" href="./assets/css/design-system.css">
 </head>
 
 <body class="auth-page bg-logo">
@@ -29,7 +29,7 @@
       </div>
 
       <div class="row">
-        <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+        <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema">
           <span class="theme-toggle__icon">🌙</span>
           <span class="theme-toggle__label">Oscuro</span>
         </button>
@@ -78,6 +78,7 @@
   </main>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   <script src="./assets/js/auth.js"></script>
   <script src="./js/app.js"></script>
 =======
@@ -85,6 +86,10 @@
   <script src="/assets/js/auth.js"></script>
   
 >>>>>>> 21dbd19 (Fix: JWT authentication flow across all pages)
+=======
+  <script src="./assets/js/auth.js"></script>
+
+>>>>>>> 468903c (Correcciones de auth JWT, dashboard y watermark)
   <script>
     const form = document.getElementById('loginForm');
     const usernameInput = document.getElementById('username');
@@ -100,28 +105,36 @@
       console.log(type === 'error' ? '❌' : '✅', message);
     }
 
+    // Si ya está autenticado, mandarlo directo
+    if (typeof authService !== 'undefined' && authService.isAuthenticated()) {
+      const me = authService.getCurrentUser();
+      if (me) {
+        const targetPage = me.role === 'cashier' ? 'caja.html' : 'index.html';
+        window.location.replace('./' + targetPage);
+      }
+    }
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      
+
       const username = usernameInput.value.trim();
       const pin = pinInput.value.trim();
-
-      console.log('=== INICIO LOGIN ===');
-      console.log('Usuario:', username);
-      console.log('PIN length:', pin.length);
 
       btnLogin.disabled = true;
       btnLogin.textContent = '⏳ Ingresando...';
 
       try {
         showStatus('Conectando con el servidor...', 'info');
-        
-        console.log('Llamando a authService.login()...');
+
         const user = await authService.login(username, pin);
-        
-        console.log('✅ Respuesta del servidor:', user);
+
+        console.log('✅ Usuario logueado:', user);
+        console.log('✅ Token guardado:', localStorage.getItem('accessToken'));
+        console.log('✅ User guardado:', localStorage.getItem('user'));
+
         showStatus(`¡Bienvenido ${user.name}!`, 'success');
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     function targetFromSession(){
       const me = authService.getCurrentUser();
@@ -136,18 +149,12 @@
 
         // FORZAR redirección después de 1 segundo
         console.log('Esperando 1 segundo antes de redirigir...');
+=======
+>>>>>>> 468903c (Correcciones de auth JWT, dashboard y watermark)
         setTimeout(() => {
           const targetPage = user.role === 'cashier' ? 'caja.html' : 'index.html';
-          console.log('🔀 Redirigiendo a:', targetPage);
-          
-          // Intentar múltiples métodos de redirección
-          try {
-            window.location.href = './' + targetPage;
-          } catch (err) {
-            console.error('Error con href, intentando replace...');
-            window.location.replace('./' + targetPage);
-          }
-        }, 1000);
+          window.location.replace('./' + targetPage);
+        }, 800);
 
 <<<<<<< HEAD
     document.getElementById("nextLbl").textContent =
@@ -280,7 +287,7 @@
 
 =======
       } catch (error) {
-        console.error('❌ ERROR COMPLETO:', error);
+        console.error('❌ ERROR LOGIN:', error);
         showStatus('Error: ' + (error.message || 'Usuario o PIN incorrectos'), 'error');
         pinInput.focus();
         pinInput.select();
@@ -288,16 +295,33 @@
         setTimeout(() => {
           btnLogin.disabled = false;
           btnLogin.textContent = '🔓 Entrar';
-        }, 2000);
+        }, 1500);
       }
     });
 
+<<<<<<< HEAD
     // Dark mode toggle
 >>>>>>> 21dbd19 (Fix: JWT authentication flow across all pages)
+=======
+>>>>>>> 468903c (Correcciones de auth JWT, dashboard y watermark)
     const themeToggle = document.getElementById('themeToggle');
     const html = document.documentElement;
     const savedTheme = localStorage.getItem('theme') || 'light';
     html.setAttribute('data-theme', savedTheme);
+    updateToggle(savedTheme);
+
+    function updateToggle(theme) {
+      const icon = themeToggle.querySelector('.theme-toggle__icon');
+      const label = themeToggle.querySelector('.theme-toggle__label');
+
+      if (theme === 'dark') {
+        icon.textContent = '☀️';
+        label.textContent = 'Claro';
+      } else {
+        icon.textContent = '🌙';
+        label.textContent = 'Oscuro';
+      }
+    }
 
     if (themeToggle) {
       themeToggle.addEventListener('click', () => {
@@ -305,22 +329,12 @@
         const newTheme = currentTheme === 'light' ? 'dark' : 'light';
         html.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
-        
-        const icon = themeToggle.querySelector('.theme-toggle__icon');
-        const label = themeToggle.querySelector('.theme-toggle__label');
-        if (newTheme === 'dark') {
-          icon.textContent = '☀️';
-          label.textContent = 'Claro';
-        } else {
-          icon.textContent = '🌙';
-          label.textContent = 'Oscuro';
-        }
+        updateToggle(newTheme);
       });
     }
 
-    // Focus on PIN
     pinInput.focus();
-    console.log('🚀 Login page cargada');
+    console.log('🚀 Login cargado');
     console.log('🔧 authService disponible:', typeof authService !== 'undefined');
   </script>
 </body>

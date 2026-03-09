@@ -13,11 +13,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="./css/styles.css">
-  <link rel="stylesheet" href="/assets/css/design-system.css">
+  <link rel="stylesheet" href="./assets/css/design-system.css">
 </head>
 
 <body>
-  <!-- Watermark MCN -->
   <div class="page-watermark" aria-hidden="true">
     <img src="./assets/img/logo2.svg" alt="">
   </div>
@@ -45,14 +44,12 @@
         </button>
         <a class="btn" href="./index.html">Volver</a>
         <a class="btn btn--primary" href="./caja.html">Ir a Caja</a>
-        <!-- BOTÓN / LINK: Cambiar usuario (PIN) -->
         <a class="btn" href="#" id="btnCambiarUsuario">Cambiar usuario (PIN)</a>
       </div>
     </div>
   </header>
 
   <main class="wrap split">
-    <!-- LISTADO -->
     <section class="section">
       <div class="section__head">
         <h3 class="section__title">Listado</h3>
@@ -93,7 +90,6 @@
       </div>
     </section>
 
-    <!-- FORM -->
     <aside class="section">
       <div class="section__head">
         <h3 class="section__title" id="formTitle">Nuevo producto</h3>
@@ -164,11 +160,27 @@
   <script src="./js/app.js"></script>
 
   <script>
+    console.log('TOKEN:', localStorage.getItem('accessToken'));
+    console.log('USER:', localStorage.getItem('user'));
+    console.log('AUTH:', authService.isAuthenticated());
+
     if (!authService.isAuthenticated()) {
       location.replace('./login.html?next=productos.html');
     }
 
-    App.guardPage(App.PERMS.admin_or_owner);
+    const me = authService.getCurrentUser();
+    console.log('✅ Usuario actual:', me);
+
+    if (!me) {
+      location.replace('./login.html?next=productos.html');
+    }
+
+    const allowedRoles = ['owner', 'admin'];
+
+    if (!allowedRoles.includes(me.role)) {
+      console.log('⛔ Sin permiso para productos:', me.role);
+      location.replace('./index.html');
+    }
 
     const q = document.getElementById("q");
     const catFilter = document.getElementById("catFilter");
@@ -187,10 +199,9 @@
 
     const btnDelete = document.getElementById("btnDelete");
 
-    // Local cache of products fetched from the API
     let productsCache = [];
 
-    function readForm(){
+    function readForm() {
       return {
         name: nameEl.value.trim(),
         category: categoryEl.value.trim(),
@@ -202,7 +213,7 @@
       };
     }
 
-    function setForm(p){
+    function setForm(p) {
       idEl.value = p?.id || "";
       nameEl.value = p?.name || "";
       categoryEl.value = p?.category || "";
@@ -217,14 +228,13 @@
       btnDelete.disabled = !editing;
     }
 
-    function isLowStock(p){
+    function isLowStock(p) {
       const stock = Number(p?.stock ?? 0);
       const min = Number(p?.min_stock ?? p?.minStock ?? 0);
       return min > 0 && stock <= min;
     }
 
-    // Escape HTML to prevent XSS
-    function escHtml(str){
+    function escHtml(str) {
       return String(str)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
@@ -233,33 +243,43 @@
         .replace(/'/g, "&#39;");
     }
 
-    async function render(){
+    async function render() {
       const text = q.value.trim();
       const cat = catFilter.value.trim();
 
       try {
         const params = new URLSearchParams();
-        if(text) params.set("search", text);
+        if (text) params.set("search", text);
 
-        const resp = await authService.fetch("/api/products?" + params.toString());
-        if(!resp.ok) throw new Error("Error del servidor");
+        const query = params.toString();
+        const url = query ? `/api/products?${query}` : `/api/products`;
+
+        const resp = await authService.fetch(url);
+
+        if (!resp) {
+          App.toast("Sesión vencida");
+          return;
+        }
+
+        if (!resp.ok) throw new Error("Error del servidor");
+
         const data = await resp.json();
 
-        // Filter by category name on client side (API filters by category_id only)
         const catLower = cat.toLowerCase();
         const list = (data.data || []).filter(p =>
-          !catLower || (p.category||"").toLowerCase().includes(catLower)
+          !catLower || (p.category || "").toLowerCase().includes(catLower)
         );
 
         productsCache = list;
         resultsInfo.textContent = `${list.length} producto${list.length === 1 ? "" : "s"}`;
 
         tbody.innerHTML = "";
+
         list.forEach(p => {
           const low = isLowStock(p);
 
           const tr = document.createElement("tr");
-          if(low) tr.classList.add("row--low");
+          if (low) tr.classList.add("row--low");
 
           tr.innerHTML = `
             <td>
@@ -271,7 +291,7 @@
             <td>${escHtml(p.category || "-")}</td>
             <td><small>${escHtml(p.barcode || "-")}</small></td>
             <td><strong>${App.roundQty(p.stock)}</strong></td>
-            <td><small>${App.roundQty(p.min_stock||0)}</small></td>
+            <td><small>${App.roundQty(p.min_stock || 0)}</small></td>
             <td><strong>${App.money(p.price)}</strong></td>
             <td class="cell-actions">
               <button class="btn" type="button" data-edit="${escHtml(String(p.id))}">Editar</button>
@@ -280,16 +300,16 @@
           tbody.appendChild(tr);
         });
 
-        tbody.querySelectorAll("button[data-edit]").forEach(btn=>{
+        tbody.querySelectorAll("button[data-edit]").forEach(btn => {
           btn.onclick = () => {
             const p = productsCache.find(pr => String(pr.id) === btn.dataset.edit);
-            if(p){
+            if (p) {
               setForm(p);
               App.toast("Editando producto");
             }
           };
         });
-      } catch(err) {
+      } catch (err) {
         console.error("Error cargando productos:", err);
         App.toast("Error al cargar productos");
       }
@@ -297,12 +317,13 @@
 
     document.getElementById("btnSave").onclick = async () => {
       const p = readForm();
-      if(!p.name) return App.toast("Falta nombre");
-      if(p.price <= 0) return App.toast("Precio inválido");
+
+      if (!p.name) return App.toast("Falta nombre");
+      if (p.price <= 0) return App.toast("Precio inválido");
 
       const id = idEl.value;
       const isUpdate = !!id;
-      const url = isUpdate ? `/api/products/${id}` : "/api/products";
+      const url = isUpdate ? `/api/products/${id}` : `/api/products`;
       const method = isUpdate ? "PUT" : "POST";
 
       try {
@@ -311,14 +332,22 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(p)
         });
+
+        if (!resp) {
+          App.toast("Sesión vencida");
+          return;
+        }
+
         const data = await resp.json();
-        if(!resp.ok){
+
+        if (!resp.ok) {
           return App.toast(data.error || "Error al guardar");
         }
+
         App.toast("Guardado");
         await render();
         setForm(null);
-      } catch(err) {
+      } catch (err) {
         console.error("Error al guardar producto:", err);
         App.toast("Error al guardar");
       }
@@ -328,21 +357,28 @@
 
     btnDelete.onclick = async () => {
       const id = idEl.value;
-      if(!id) return;
+      if (!id) return;
 
       const ok = confirm("¿Eliminar este producto? Esta acción no se puede deshacer.");
-      if(!ok) return;
+      if (!ok) return;
 
       try {
         const resp = await authService.fetch(`/api/products/${id}`, { method: "DELETE" });
-        if(!resp.ok){
+
+        if (!resp) {
+          App.toast("Sesión vencida");
+          return;
+        }
+
+        if (!resp.ok) {
           const data = await resp.json();
           return App.toast(data.error || "Error al eliminar");
         }
+
         App.toast("Eliminado");
         await render();
         setForm(null);
-      } catch(err) {
+      } catch (err) {
         console.error("Error al eliminar producto:", err);
         App.toast("Error al eliminar");
       }
@@ -354,57 +390,47 @@
     render();
     setForm(null);
 
-    
-  (function wirePinButton(){
-    function bind(){
-      var el = document.getElementById("btnCambiarUsuario");
-      if(!el) return;
+    (function wirePinButton() {
+      function bind() {
+        const el = document.getElementById("btnCambiarUsuario");
+        if (!el) return;
+        if (el.__boundPinBtn) return;
+        el.__boundPinBtn = true;
 
-      // evitar doble bind si se pega 2 veces
-      if(el.__boundPinBtn) return;
-      el.__boundPinBtn = true;
+        el.addEventListener("click", function(e) {
+          e.preventDefault();
 
-      el.addEventListener("click", function(e){
-        e.preventDefault();
+          if (!confirm("¿Cambiar de usuario (volver a PIN)?")) return;
 
-        if(!confirm("¿Cambiar de usuario (volver a PIN)?")) return;
+          try {
+            if (window.authService && typeof authService.logout === "function") {
+              authService.logout();
+            } else if (window.App && typeof App.logout === "function") {
+              App.logout();
+            } else {
+              localStorage.clear();
+              location.href = "./login.html";
+            }
+          } catch (_e) {}
+        });
+      }
 
-        try{
-          if(window.authService && typeof authService.logout === "function"){
-            authService.logout();
-          }else if(window.App && typeof App.logout === "function"){
-            App.logout();
-          }else{
-            localStorage.clear();
-            location.href = "./login.html";
-          }
-        }catch(_e){}
-      });
-    }
-
-    // por si el script corre antes que el DOM
-    if(document.readyState === "loading"){
-      document.addEventListener("DOMContentLoaded", bind);
-    }else{
-      bind();
-    }
-  })();
-
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", bind);
+      } else {
+        bind();
+      }
+    })();
   </script>
-  <script>
-    // ============================================
-    // DARK MODE TOGGLE
-    // ============================================
 
+  <script>
     const themeToggle = document.getElementById('themeToggle');
     const html = document.documentElement;
 
-    // Get saved theme or default to light
     const savedTheme = localStorage.getItem('theme') || 'light';
     html.setAttribute('data-theme', savedTheme);
     updateToggleButton(savedTheme);
 
-    // Toggle theme on button click
     if (themeToggle) {
       themeToggle.addEventListener('click', () => {
         const currentTheme = html.getAttribute('data-theme');
@@ -416,7 +442,6 @@
       });
     }
 
-    // Update button icon and text
     function updateToggleButton(theme) {
       if (!themeToggle) return;
 

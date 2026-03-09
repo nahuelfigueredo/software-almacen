@@ -6,9 +6,8 @@
    - AddSale consistente con cash state
    - Auto-recorte de ventas (MAX_SALES) + limpieza de salesIds
    - Seed demo de productos
-   - Auth por PIN + Roles
+   - Compatibilidad con JWT Auth
    - License demo->full
-
 ========================================================= */
 
 /* ========= Config ========= */
@@ -20,11 +19,11 @@ const LS_KEYS = {
   PRICE_CHANGES: "almacen_price_changes_v1",
   STOCK_MOVES: "almacen_stock_moves_v1",
   AUTH_USERS: "almacen_users_v1",
-  AUTH_SESSION: "almacen_session_v1",
+  AUTH_SESSION: "almacen_session_v1", // legacy, se mantiene por compatibilidad
 };
 
 // Mantener solo las ventas más recientes (newest-first)
-// 4500 ≈ 45 días a 100 ventas/día (recomendado para dejar margen)
+// 4500 ≈ 45 días a 100 ventas/día
 const MAX_SALES = 4500;
 
 /* ========= Utils ========= */
@@ -40,7 +39,7 @@ function num(n){
 function roundQty(q){
   return Math.round(num(q) * 1000) / 1000;
 }
-function uid(prefix="id"){
+function uid(prefix = "id"){
   return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now()}`;
 }
 
@@ -56,7 +55,7 @@ function toast(msg){
   el.textContent = msg;
   el.style.display = "block";
   clearTimeout(window.__toastTimer);
-  window.__toastTimer = setTimeout(()=>{ el.style.display="none"; }, 2200);
+  window.__toastTimer = setTimeout(() => { el.style.display = "none"; }, 2200);
 }
 
 /* ========= Storage Helpers ========= */
@@ -79,14 +78,15 @@ function saveJSON(key, value){
 function getProducts(){ return loadJSON(LS_KEYS.PRODUCTS, []); }
 function setProducts(list){ saveJSON(LS_KEYS.PRODUCTS, list); }
 function findProductById(id){ return getProducts().find(p => p.id === id) || null; }
+
 function findProductByBarcode(code){
   const c = String(code || "").trim().toLowerCase();
-  if(!c) {
-    console.warn('findProductByBarcode: código vacío');
+  if(!c){
+    console.warn("findProductByBarcode: código vacío");
     return null;
   }
 
-  console.log('Buscando producto con código:', c);
+  console.log("Buscando producto con código:", c);
 
   const allProducts = getProducts();
   const product = allProducts.find(p => {
@@ -94,31 +94,32 @@ function findProductByBarcode(code){
     return barcode === c && p.active !== false;
   });
 
-  if (!product) {
-    // Verificar si existe pero está inactivo
+  if(!product){
     const inactiveProduct = allProducts.find(p => {
       const barcode = String(p.barcode || "").trim().toLowerCase();
       return barcode === c;
     });
 
-    if (inactiveProduct) {
-      console.warn('Producto encontrado pero está inactivo:', inactiveProduct);
-      return { error: 'inactive', product: inactiveProduct };
+    if(inactiveProduct){
+      console.warn("Producto encontrado pero está inactivo:", inactiveProduct);
+      return { error: "inactive", product: inactiveProduct };
     }
 
-    console.warn('No se encontró producto con código:', c);
-    return { error: 'not_found', code: c };
+    console.warn("No se encontró producto con código:", c);
+    return { error: "not_found", code: c };
   }
 
-  console.log('Producto encontrado:', product.name);
+  console.log("Producto encontrado:", product.name);
   return product;
 }
+
 function searchProductsByName(q){
   const s = String(q || "").trim().toLowerCase();
   const all = getProducts().filter(p => p.active !== false);
   if(!s) return all;
   return all.filter(p => (p.name || "").toLowerCase().includes(s));
 }
+
 function upsertProduct(product){
   const list = getProducts();
   const idx = list.findIndex(p => p.id === product.id);
@@ -126,6 +127,7 @@ function upsertProduct(product){
   else list.unshift(product);
   setProducts(list);
 }
+
 function deleteProduct(id){
   const list = getProducts().filter(p => p.id !== id);
   setProducts(list);
@@ -146,11 +148,13 @@ function adjustStock(productId, deltaQty){
    Kardex: Stock Moves
 ========================================================= */
 function getStockMoves(){ return loadJSON(LS_KEYS.STOCK_MOVES, []); }
+
 function addStockMove(move){
   const list = getStockMoves();
   list.unshift(move);
   saveJSON(LS_KEYS.STOCK_MOVES, list);
 }
+
 function recordStockMove({ type, productId, qty, unitCost = 0, note = "", refType = "", refId = "" }){
   const pBefore = findProductById(productId);
   if(!pBefore) throw new Error("Producto no encontrado");
@@ -241,11 +245,13 @@ function recordStockSet({ productId, newStock, note = "", refType = "INVENTORY",
    Stock Entries
 ========================================================= */
 function getStockEntries(){ return loadJSON(LS_KEYS.STOCK_ENTRIES, []); }
+
 function addStockEntry(entry){
   const list = getStockEntries();
   list.unshift(entry);
   saveJSON(LS_KEYS.STOCK_ENTRIES, list);
 }
+
 function registerStockEntry({ productId, qty, unitCost, supplier, note }){
   const p = findProductById(productId);
   if(!p) throw new Error("Producto no encontrado");
@@ -257,7 +263,7 @@ function registerStockEntry({ productId, qty, unitCost, supplier, note }){
     type: "IN",
     productId,
     qty: q,
-    unitCost: unitCost,
+    unitCost,
     note: (supplier ? `Proveedor: ${supplier}. ` : "") + (note || "Entrada de mercadería"),
     refType: "ENTRY",
     refId: ""
@@ -289,11 +295,13 @@ function registerStockEntry({ productId, qty, unitCost, supplier, note }){
    Price Changes
 ========================================================= */
 function getPriceChanges(){ return loadJSON(LS_KEYS.PRICE_CHANGES, []); }
+
 function addPriceChange(change){
   const list = getPriceChanges();
   list.unshift(change);
   saveJSON(LS_KEYS.PRICE_CHANGES, list);
 }
+
 function roundPrice(value, rounding){
   const v = num(value);
   if(!rounding || rounding === "NONE") return v;
@@ -301,6 +309,7 @@ function roundPrice(value, rounding){
   if(step <= 0) return v;
   return Math.round(v / step) * step;
 }
+
 function applyPriceIncrease({ scope, category, percent, rounding }){
   const pct = num(percent);
   if(!Number.isFinite(pct) || pct === 0) throw new Error("Porcentaje inválido (no puede ser 0)");
@@ -427,10 +436,9 @@ function getCash(){
   };
 }
 
-/* ===== setCash (blindado) — trabaja sobre st ===== */
 function setCash(cashLike){
   const st = getCashState();
-  const cur = (st.currentSessionId)
+  const cur = st.currentSessionId
     ? st.sessions.find(s => s.id === st.currentSessionId)
     : null;
 
@@ -440,7 +448,6 @@ function setCash(cashLike){
 
   const patch = Object.assign({}, cashLike || {});
 
-  // Nunca permitir reabrir o "des-cerrar"
   if(Object.prototype.hasOwnProperty.call(patch, "open") && patch.open === true && cur.open !== true){
     throw new Error("setCash() no puede abrir la caja. Usá openCash(openingAmount).");
   }
@@ -448,7 +455,6 @@ function setCash(cashLike){
     throw new Error("setCash() no puede borrar closedAt de una sesión cerrada.");
   }
 
-  // Whitelist de campos seguros
   const allowed = { totals:1, salesIds:1, openingAmount:1, openedAt:1 };
   Object.keys(patch).forEach(k => { if(!allowed[k]) delete patch[k]; });
 
@@ -456,10 +462,9 @@ function setCash(cashLike){
   setCashState(st);
 }
 
-/* ===== openCash (definido y exportable) ===== */
 function openCash(openingAmount){
   const st = getCashState();
-  const cur = (st.currentSessionId)
+  const cur = st.currentSessionId
     ? st.sessions.find(s => s.id === st.currentSessionId)
     : null;
 
@@ -483,7 +488,6 @@ function openCash(openingAmount){
   return session;
 }
 
-/* ===== closeCash (robusto) ===== */
 function closeCash(){
   const st = getCashState();
 
@@ -516,7 +520,7 @@ function _trimCashSalesIdsToExisting(st, keptSales){
 
 function addSale(sale){
   const st = getCashState();
-  const cur = (st.currentSessionId)
+  const cur = st.currentSessionId
     ? st.sessions.find(s => s.id === st.currentSessionId)
     : null;
 
@@ -543,7 +547,6 @@ function addSale(sale){
   const sales = getSales();
   sales.unshift(s);
 
-  // ✅ AUTO-RECORTE (newest-first)
   if(sales.length > MAX_SALES){
     sales.length = MAX_SALES;
     _trimCashSalesIdsToExisting(st, sales);
@@ -681,18 +684,15 @@ function ensureSeed(){
 }
 
 /* =========================================================
-   AUTH (PIN + Roles)
+   AUTH (JWT bridge + compatibilidad)
 ========================================================= */
 function getUsers(){ return loadJSON(LS_KEYS.AUTH_USERS, []); }
 function setUsers(list){ saveJSON(LS_KEYS.AUTH_USERS, list); }
-function getSession(){ return loadJSON(LS_KEYS.AUTH_SESSION, null); }
-function setSession(session){ saveJSON(LS_KEYS.AUTH_SESSION, session); }
-function clearSession(){ localStorage.removeItem(LS_KEYS.AUTH_SESSION); }
 
 function pinHash(pin){
   const s = String(pin || "").trim();
   let h = 0;
-  for(let i=0;i<s.length;i++){
+  for(let i = 0; i < s.length; i++){
     h = (h * 31 + s.charCodeAt(i)) >>> 0;
   }
   return "h" + h.toString(16);
@@ -703,20 +703,22 @@ function isStrongPin(pin){
   if(!/^\d+$/.test(s)) return { ok:false, message:"PIN debe ser numérico" };
   if(s.length < 4) return { ok:false, message:"PIN muy corto (mínimo 4)" };
   if(s.length > 8) return { ok:false, message:"PIN muy largo (máximo 8)" };
+
   const weak = new Set(["0000","1111","2222","3333","4444","5555","6666","7777","8888","9999","1234"]);
   if(weak.has(s)) return { ok:false, message:"PIN muy común. Elegí otro." };
+
   return { ok:true };
 }
 
 function defaultUsers(){
   const ownerPin  = "9999";
   const adminPin  = "1234";
-  const sellerPin = "0000";
+  const cashierPin = "0000";
 
   return [
-    { id: uid("u"), name: "Dueño",    role: "owner",  pin: pinHash(ownerPin),  active: true },
-    { id: uid("u"), name: "Admin",    role: "admin",  pin: pinHash(adminPin),  active: true },
-    { id: uid("u"), name: "Vendedor", role: "seller", pin: pinHash(sellerPin), active: true },
+    { id: uid("u"), name: "Dueño",  role: "owner",   pin: pinHash(ownerPin),   active: true },
+    { id: uid("u"), name: "Admin",  role: "admin",   pin: pinHash(adminPin),   active: true },
+    { id: uid("u"), name: "Cajero", role: "cashier", pin: pinHash(cashierPin), active: true },
   ];
 }
 
@@ -730,7 +732,6 @@ function resetUsersToDefault(){
   const r = requireRole(PERMS.owner_only);
   if(!r.ok) throw new Error("Sin permiso para resetear usuarios");
   setUsers(defaultUsers());
-  clearSession();
   return true;
 }
 
@@ -764,17 +765,18 @@ function toggleUserActive(userId){
   return u.active;
 }
 
-function loginWithPin(pin){
-  ensureAuthSeed();
-  const h = pinHash(pin);
-  const user = getUsers().find(u => u.active !== false && u.pin === h);
-  if(!user) return { ok:false, message:"PIN incorrecto" };
-
-  const session = { userId: user.id, name: user.name, role: user.role, loggedAt: nowISO() };
-  setSession(session);
-  return { ok:true, session };
+/* Legacy: ya no se usa para autenticar realmente */
+function getSession(){
+  return loadJSON(LS_KEYS.AUTH_SESSION, null);
+}
+function setSession(session){
+  saveJSON(LS_KEYS.AUTH_SESSION, session);
+}
+function clearSession(){
+  localStorage.removeItem(LS_KEYS.AUTH_SESSION);
 }
 
+<<<<<<< HEAD
 function logout(){
   // Cerrar sesión JWT si existe
   if(typeof authService !== 'undefined' && authService.isAuthenticated()){
@@ -797,16 +799,47 @@ function getMe(){
   const u = getUsers().find(x => x.id === s.userId && x.active !== false);
   if(!u) return null;
   return { id: u.id, name: u.name, role: u.role };
+=======
+/* Compatibilidad: si algo viejo lo llama */
+function loginWithPin(){
+  return { ok:false, message:"loginWithPin() quedó obsoleto. Usar authService.login()." };
+}
+
+function logout(){
+  clearSession();
+
+  if(window.authService && typeof authService.logout === "function"){
+    return authService.logout();
+  }
+
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
+  localStorage.removeItem("user");
+  location.href = "./login.html";
+}
+
+function getMe(){
+  if(window.authService && typeof authService.getCurrentUser === "function"){
+    const me = authService.getCurrentUser();
+    if(me) return me;
+  }
+
+  try{
+    const raw = localStorage.getItem("user");
+    return raw ? JSON.parse(raw) : null;
+  }catch{
+    return null;
+  }
+>>>>>>> 468903c (Correcciones de auth JWT, dashboard y watermark)
 }
 
 const PERMS = {
   owner_only: ["owner"],
   admin_or_owner: ["admin","owner"],
-  seller_admin_owner: ["seller","admin","owner"],
+  seller_admin_owner: ["cashier","admin","owner"],
 };
 
 function requireRole(allowedRoles){
-  ensureAuthSeed();
   const me = getMe();
   if(!me) return { ok:false, reason:"no_session" };
   if(!allowedRoles.includes(me.role)) return { ok:false, reason:"no_perm", me };
@@ -814,10 +847,22 @@ function requireRole(allowedRoles){
 }
 
 function guardPage(allowedRoles){
+  if(window.authService && typeof authService.isAuthenticated === "function"){
+    if(!authService.isAuthenticated()){
+      const next = encodeURIComponent(location.pathname.split("/").pop() || "index.html");
+      location.replace(`./login.html?next=${next}`);
+      return { ok:false, reason:"no_session" };
+    }
+  }
+
   const r = requireRole(allowedRoles);
   if(!r.ok){
-    const next = encodeURIComponent(location.pathname.split("/").pop() || "index.html");
-    location.replace(`./login.html?next=${next}`);
+    if(r.reason === "no_session"){
+      const next = encodeURIComponent(location.pathname.split("/").pop() || "index.html");
+      location.replace(`./login.html?next=${next}`);
+    }else{
+      location.replace("./index.html");
+    }
   }
   return r;
 }
@@ -827,6 +872,7 @@ const LICENSE = {
   KEY: "almacen_license_v1",
   SECRET: "NF-ALMACEN-2026"
 };
+
 function _b64(str){ return btoa(unescape(encodeURIComponent(str))); }
 function _ub64(str){ return decodeURIComponent(escape(atob(str))); }
 
@@ -834,6 +880,7 @@ function buildLicenseToken({ customer = "cliente", date = "" } = {}){
   const payload = `${LICENSE.SECRET}|${String(customer).trim()}|${String(date).trim()}`;
   return _b64(payload);
 }
+
 function activateLicense(token){
   try{
     const decoded = _ub64(String(token || "").trim());
@@ -855,10 +902,15 @@ function activateLicense(token){
     return { ok:false, message:"Token inválido" };
   }
 }
+
 function getLicense(){
-  try{ return JSON.parse(localStorage.getItem(LICENSE.KEY) || "null"); }
-  catch{ return null; }
+  try{
+    return JSON.parse(localStorage.getItem(LICENSE.KEY) || "null");
+  }catch{
+    return null;
+  }
 }
+
 function isLicensed(){
   const lic = getLicense();
   return !!(lic && lic.status === "FULL" && lic.token);
@@ -897,7 +949,7 @@ window.App = {
   // precios
   getPriceChanges, applyPriceIncrease,
 
-  // auth
+  // auth compat JWT
   ensureAuthSeed,
   getUsers, setUsers,
   updateUserPin, toggleUserActive, resetUsersToDefault,

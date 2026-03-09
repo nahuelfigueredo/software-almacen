@@ -7,10 +7,37 @@
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Movimientos (Kardex)</title>
+<<<<<<< HEAD
   <link rel="stylesheet" href="./css/styles.css">
+=======
+
+  <link rel="stylesheet" href="./css/styles.css">
+
+  <style>
+    .page-watermark {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      opacity: 0.05;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .page-watermark img {
+      width: 220px;
+      height: auto;
+      display: block;
+    }
+
+    .top,
+    main {
+      position: relative;
+      z-index: 2;
+    }
+  </style>
+>>>>>>> 468903c (Correcciones de auth JWT, dashboard y watermark)
 </head>
 <body>
-  <!-- Watermark MCN -->
   <div class="page-watermark" aria-hidden="true">
     <img src="./assets/img/logo2.svg" alt="">
   </div>
@@ -24,27 +51,27 @@
           <div class="brand__sub">Entradas / Salidas / Ajustes</div>
         </div>
       </div>
+
       <div class="row">
         <a class="btn" href="./index.html">Volver</a>
         <a class="btn btn--primary" href="./entradas.html">Entradas</a>
         <a class="btn" href="./caja.html">Caja</a>
-
-        <!-- BOTÓN / LINK: Cambiar usuario (PIN) -->
-<a class="btn" href="#" id="btnCambiarUsuario">Cambiar usuario (PIN)</a>
+        <a class="btn" href="#" id="btnCambiarUsuario">Cambiar usuario (PIN)</a>
       </div>
     </div>
   </header>
 
   <main class="wrap">
     <section class="section">
-      <div class="row" style="justify-content:space-between;align-items:end">
+      <div class="row" style="justify-content:space-between;align-items:end;gap:10px;flex-wrap:wrap">
         <div>
           <h3 style="margin:0 0 8px">Historial</h3>
           <div class="muted">Todo cambio de stock queda registrado.</div>
         </div>
-        <div class="row">
+
+        <div class="row" style="gap:10px;flex-wrap:wrap">
           <div style="width:220px">
-            <label>Tipo</label>
+            <label for="type">Tipo</label>
             <select id="type">
               <option value="">Todos</option>
               <option value="IN">IN (Entrada)</option>
@@ -52,11 +79,13 @@
               <option value="ADJ">ADJ (Ajuste)</option>
             </select>
           </div>
+
           <div style="width:320px">
-            <label>Buscar producto</label>
+            <label for="q">Buscar producto</label>
             <input id="q" placeholder="Nombre o ID..." />
           </div>
-          <button class="btn" id="btnRefresh" style="align-self:end">Actualizar</button>
+
+          <button class="btn" id="btnRefresh" type="button" style="align-self:end">Actualizar</button>
         </div>
       </div>
 
@@ -88,41 +117,69 @@
   <script src="./js/app.js"></script>
 
   <script>
+<<<<<<< HEAD
     if (!authService.isAuthenticated()) {
       location.replace('./login.html?next=movimientos.html');
     }
 
     App.guardPage(App.PERMS.admin_or_owner);
+=======
+    console.log('TOKEN:', localStorage.getItem('accessToken'));
+    console.log('USER:', localStorage.getItem('user'));
+    console.log('AUTH:', authService.isAuthenticated());
+>>>>>>> 468903c (Correcciones de auth JWT, dashboard y watermark)
 
+    if (!authService.isAuthenticated()) {
+      window.location.replace('./login.html?next=movimientos.html');
+    }
 
-    window.App.ensureSeed();
+    const jwtUser = authService.getCurrentUser();
+    console.log('✅ Usuario actual:', jwtUser);
+
+    if (!jwtUser) {
+      window.location.replace('./login.html?next=movimientos.html');
+    }
+
+    const allowedRoles = ['owner', 'admin'];
+    if (!allowedRoles.includes(jwtUser.role)) {
+      console.log('⛔ Sin permiso para movimientos:', jwtUser.role);
+      window.location.replace('./index.html');
+    }
+
+    if (window.App && typeof App.ensureSeed === 'function') {
+      App.ensureSeed();
+    }
 
     const typeEl = document.getElementById("type");
     const qEl = document.getElementById("q");
     const summary = document.getElementById("summary");
     const tbody = document.querySelector("#tbl tbody");
 
-    function render(){
+    function render() {
       const type = typeEl.value;
       const q = qEl.value.trim().toLowerCase();
 
       let list = App.getStockMoves();
 
-      if(type) list = list.filter(m => m.type === type);
+      if (type) {
+        list = list.filter(m => m.type === type);
+      }
 
-      if(q){
+      if (q) {
         list = list.filter(m =>
-          (m.productName||"").toLowerCase().includes(q) ||
-          String(m.productId||"").toLowerCase().includes(q)
+          (m.productName || "").toLowerCase().includes(q) ||
+          String(m.productId || "").toLowerCase().includes(q)
         );
       }
 
       const inCount = list.filter(m => m.type === "IN").length;
       const outCount = list.filter(m => m.type === "OUT").length;
+      const adjCount = list.filter(m => m.type === "ADJ").length;
 
-      summary.textContent = `Movimientos: ${list.length} • IN: ${inCount} • OUT: ${outCount}`;
+      summary.textContent = `Movimientos: ${list.length} • IN: ${inCount} • OUT: ${outCount} • ADJ: ${adjCount}`;
 
       tbody.innerHTML = "";
+
       list.slice(0, 300).forEach(m => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -133,11 +190,10 @@
             <small class="muted">${m.productId}</small>
           </td>
           <td>${
-         m.type === "ADJ" && typeof m.delta === "number"
-        ? (m.delta > 0 ? "+" : "") + App.roundQty(m.delta)
-        : App.roundQty(m.qty)
+            m.type === "ADJ" && typeof m.delta === "number"
+              ? (m.delta > 0 ? "+" : "") + App.roundQty(m.delta)
+              : App.roundQty(m.qty)
           }</td>
-
           <td>${App.roundQty(m.stockBefore)}</td>
           <td><strong>${App.roundQty(m.stockAfter)}</strong></td>
           <td><small>${m.refType || "-"} ${m.refId || ""}</small></td>
@@ -146,56 +202,54 @@
         tbody.appendChild(tr);
       });
 
-      if(!list.length){
+      if (!list.length) {
         const tr = document.createElement("tr");
         tr.innerHTML = `<td colspan="8" class="muted" style="padding:14px 8px">Sin movimientos todavía.</td>`;
         tbody.appendChild(tr);
       }
     }
 
-    document.getElementById("btnRefresh").onclick = render;
+    document.getElementById("btnRefresh").addEventListener("click", render);
     typeEl.addEventListener("change", render);
     qEl.addEventListener("input", render);
 
-    render();
+    (function wirePinButton() {
+      function bind() {
+        const el = document.getElementById("btnCambiarUsuario");
+        if (!el) return;
+        if (el.__boundPinBtn) return;
+        el.__boundPinBtn = true;
 
+        el.addEventListener("click", async function(e) {
+          e.preventDefault();
 
-    
-  (function wirePinButton(){
-    function bind(){
-      var el = document.getElementById("btnCambiarUsuario");
-      if(!el) return;
+          if (!confirm("¿Cambiar de usuario (volver a PIN)?")) return;
 
-      // evitar doble bind si se pega 2 veces
-      if(el.__boundPinBtn) return;
-      el.__boundPinBtn = true;
-
-      el.addEventListener("click", function(e){
-        e.preventDefault();
-
-        if(!confirm("¿Cambiar de usuario (volver a PIN)?")) return;
-
-        try{
-          if(window.App && typeof App.logout === "function"){
-            App.logout();
-          }else{
-            localStorage.removeItem("almacen_session_v1");
+          try {
+            if (window.authService && typeof authService.logout === "function") {
+              await authService.logout();
+            } else if (window.App && typeof App.logout === "function") {
+              App.logout();
+            } else {
+              localStorage.removeItem("accessToken");
+              localStorage.removeItem("refreshToken");
+              localStorage.removeItem("user");
+              location.href = "./login.html";
+            }
+          } catch (_e) {
+            location.href = "./login.html";
           }
-        }catch(_e){}
+        });
+      }
 
-        var next = encodeURIComponent(location.pathname.split("/").pop() || "index.html");
-        location.href = "./login.html?next=" + next;
-      });
-    }
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", bind);
+      } else {
+        bind();
+      }
+    })();
 
-    // por si el script corre antes que el DOM
-    if(document.readyState === "loading"){
-      document.addEventListener("DOMContentLoaded", bind);
-    }else{
-      bind();
-    }
-  })();
-
+    render();
   </script>
 </body>
 </html>

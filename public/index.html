@@ -13,11 +13,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="./css/styles.css">
-  <link rel="stylesheet" href="/assets/css/design-system.css">
+  <link rel="stylesheet" href="./assets/css/design-system.css">
 </head>
 
 <body>
-  <!-- Watermark MCN -->
   <div class="page-watermark" aria-hidden="true">
     <img src="./assets/img/logo2.svg" alt="">
   </div>
@@ -40,20 +39,23 @@
       </div>
 
       <div style="display:flex;align-items:center;gap:10px">
-        <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+        <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema">
           <span class="theme-toggle__icon">🌙</span>
           <span class="theme-toggle__label">Oscuro</span>
         </button>
+
         <div class="pill">
           <span class="pill__dot" aria-hidden="true"></span>
           <span class="pill__text" id="pillText">Listo</span>
         </div>
+
+        <button class="btn btn--ghost" id="btnLogout" type="button">Salir</button>
       </div>
     </div>
   </header>
 
   <main class="wrap grid">
-    <a class="card" href="./caja.html" data-roles="owner,admin,seller">
+    <a class="card" href="./caja.html" data-roles="owner,admin,cashier">
       <div class="card__icon" aria-hidden="true">🧾</div>
       <h2>Caja (POS)</h2>
       <p>Venta rápida, lector USB, cobro y ticket.</p>
@@ -65,13 +67,13 @@
       <p>Alta/edición, precios, stock y mínimos.</p>
     </a>
 
-    <a class="card" href="./cierre-caja.html" data-roles="owner,admin,seller">
+    <a class="card" href="./cierre-caja.html" data-roles="owner,admin,cashier">
       <div class="card__icon" aria-hidden="true">📅</div>
       <h2>Caja diaria</h2>
       <p>Apertura / Cierre y totales por medio de pago.</p>
     </a>
 
-    <a class="card" href="./entradas.html" data-roles="owner,admin,seller">
+    <a class="card" href="./entradas.html" data-roles="owner,admin,cashier">
       <div class="card__icon" aria-hidden="true">⬇️</div>
       <h2>Entradas de mercadería</h2>
       <p>Reposición/compra. Suma stock y guarda historial.</p>
@@ -95,7 +97,7 @@
       <p>Historial completo de entradas y salidas de stock.</p>
     </a>
 
-    <a class="card" href="./ajustes.html" data-roles="owner,admin,seller">
+    <a class="card" href="./ajustes.html" data-roles="owner,admin,cashier">
       <div class="card__icon" aria-hidden="true">🛠️</div>
       <h2>Ajustes de stock</h2>
       <p>Rotura, vencido e inventario físico (ADJ en Kardex).</p>
@@ -110,7 +112,7 @@
     <a class="card" href="./usuarios.html" data-roles="owner">
       <div class="card__icon" aria-hidden="true">👤</div>
       <h2>Usuarios</h2>
-      <p>PIN Dueño/Admin/Vendedor (solo Dueño).</p>
+      <p>PIN Dueño/Admin/Cajero (solo Dueño).</p>
     </a>
 
     <a class="card" href="./dashboard.html" data-roles="owner,admin">
@@ -128,6 +130,7 @@
 
   <script src="./assets/js/auth.js"></script>
   <script src="./js/app.js"></script>
+<<<<<<< HEAD
 <<<<<<< HEAD
 
   <script>
@@ -167,23 +170,24 @@
 
 =======
    <script src="./assets/js/auth.js"></script>
+=======
+  <script src="./assets/js/auth.js"></script>
+>>>>>>> 468903c (Correcciones de auth JWT, dashboard y watermark)
 
   <script>
-  
-  // Inicializar sistema legacy para compatibilidad
-  App.ensureAuthSeed();
+    if (typeof App !== 'undefined' && typeof App.ensureAuthSeed === 'function') {
+      App.ensureAuthSeed();
+    }
 
-  // Verificar autenticación JWT
-  if (!authService.isAuthenticated()) {
-    console.log('❌ No autenticado con JWT, redirigiendo...');
-    location.replace("./login.html?next=index.html");
-  } else {
-    const me = authService.getCurrentUser();
-    console.log('✅ Usuario JWT:', me);
+    console.log('TOKEN:', localStorage.getItem('accessToken'));
+    console.log('USER:', localStorage.getItem('user'));
+    console.log('AUTH:', authService.isAuthenticated());
 
-    if (!me) {
-      location.replace("./login.html?next=index.html");
+    if (!authService.isAuthenticated()) {
+      console.log('❌ No autenticado, redirigiendo al login');
+      window.location.replace('./login.html');
     } else {
+<<<<<<< HEAD
 >>>>>>> 21dbd19 (Fix: JWT authentication flow across all pages)
       const pill = document.getElementById("pillText");
       if (pill) {
@@ -205,6 +209,37 @@
         if (!roles.includes(role)) {
           a.style.display = "none";
         }
+=======
+      const me = authService.getCurrentUser();
+      console.log('✅ Usuario actual:', me);
+
+      if (!me) {
+        console.log('❌ No se pudo obtener usuario');
+        window.location.replace('./login.html');
+      } else {
+        const pill = document.getElementById('pillText');
+        if (pill) pill.textContent = `Hola, ${me.name}`;
+
+        const role = me.role || '';
+
+        document.querySelectorAll('a.card[data-roles]').forEach(card => {
+          const roles = (card.getAttribute('data-roles') || '')
+            .split(',')
+            .map(s => s.trim())
+            .filter(Boolean);
+
+          if (!roles.includes(role)) {
+            card.style.display = 'none';
+          }
+        });
+      }
+    }
+
+    const btnLogout = document.getElementById('btnLogout');
+    if (btnLogout) {
+      btnLogout.addEventListener('click', async () => {
+        await authService.logout();
+>>>>>>> 468903c (Correcciones de auth JWT, dashboard y watermark)
       });
 <<<<<<< HEAD
 
@@ -213,6 +248,7 @@
   </script>
 =======
     }
+<<<<<<< HEAD
   }
 </script>
 >>>>>>> 21dbd19 (Fix: JWT authentication flow across all pages)
@@ -220,16 +256,18 @@
     // ============================================
     // DARK MODE TOGGLE
     // ============================================
+=======
+  </script>
+>>>>>>> 468903c (Correcciones de auth JWT, dashboard y watermark)
 
+  <script>
     const themeToggle = document.getElementById('themeToggle');
     const html = document.documentElement;
 
-    // Get saved theme or default to light
     const savedTheme = localStorage.getItem('theme') || 'light';
     html.setAttribute('data-theme', savedTheme);
     updateToggleButton(savedTheme);
 
-    // Toggle theme on button click
     if (themeToggle) {
       themeToggle.addEventListener('click', () => {
         const currentTheme = html.getAttribute('data-theme');
@@ -241,7 +279,6 @@
       });
     }
 
-    // Update button icon and text
     function updateToggleButton(theme) {
       if (!themeToggle) return;
 

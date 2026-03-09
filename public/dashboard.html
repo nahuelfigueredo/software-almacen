@@ -13,10 +13,32 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="./css/styles.css">
+
+  <style>
+    .page-watermark {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      opacity: 0.05;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .page-watermark img {
+      width: 220px;
+      height: auto;
+      display: block;
+    }
+
+    .top,
+    main {
+      position: relative;
+      z-index: 2;
+    }
+  </style>
 </head>
 
 <body>
-  <!-- Watermark MCN -->
   <div class="page-watermark" aria-hidden="true">
     <img src="./assets/img/logo2.svg" alt="">
   </div>
@@ -59,8 +81,7 @@
         <div class="row" style="gap:10px;flex-wrap:wrap">
           <a class="btn" href="./cierre-caja.html">Caja diaria</a>
           <a class="btn" href="./reportes.html">Reportes</a>
-          <!-- BOTÓN / LINK: Cambiar usuario (PIN) -->
-<a class="btn" href="#" id="btnCambiarUsuario">Cambiar usuario (PIN)</a>
+          <a class="btn" href="#" id="btnCambiarUsuario">Cambiar usuario (PIN)</a>
         </div>
       </div>
     </section>
@@ -116,13 +137,41 @@
 
   <script src="./assets/js/auth.js"></script>
   <script src="./js/app.js"></script>
+
   <script>
+<<<<<<< HEAD
     if (!authService.isAuthenticated()) {
       location.replace('./login.html?next=dashboard.html');
     }
 
     App.ensureAuthSeed();
     App.guardPage(App.PERMS.seller_admin_owner);
+=======
+    console.log('TOKEN:', localStorage.getItem('accessToken'));
+    console.log('USER:', localStorage.getItem('user'));
+    console.log('AUTH:', authService.isAuthenticated());
+
+    if (!authService.isAuthenticated()) {
+      window.location.replace('./login.html?next=dashboard.html');
+    }
+
+    const jwtUser = authService.getCurrentUser();
+    console.log('✅ Usuario actual:', jwtUser);
+
+    if (!jwtUser) {
+      window.location.replace('./login.html?next=dashboard.html');
+    }
+
+    const allowedRoles = ['owner', 'admin', 'cashier'];
+    if (!allowedRoles.includes(jwtUser.role)) {
+      console.log('⛔ Sin permiso para dashboard:', jwtUser.role);
+      window.location.replace('./index.html');
+    }
+
+    if (window.App && typeof App.ensureAuthSeed === 'function') {
+      App.ensureAuthSeed();
+    }
+>>>>>>> 468903c (Correcciones de auth JWT, dashboard y watermark)
 
     const meLbl = document.getElementById("meLbl");
     const lastActionLbl = document.getElementById("lastActionLbl");
@@ -146,7 +195,7 @@
     function roleLabel(role){
       if(role === "owner") return "Dueño";
       if(role === "admin") return "Admin";
-      if(role === "seller") return "Vendedor";
+      if(role === "cashier") return "Cajero";
       return role || "-";
     }
 
@@ -160,7 +209,7 @@
     }
 
     function render(){
-      const me = App.getMe();
+      const me = App.getMe() || jwtUser;
       meLbl.textContent = me ? `${me.name} (${roleLabel(me.role)})` : "Sin sesión";
 
       const cur = App.getCurrentCashSession();
@@ -201,7 +250,7 @@
       const sessions = App.listCashSessions();
       tbodySessions.innerHTML = "";
 
-      sessions.slice(0, 10).forEach(s=>{
+      sessions.slice(0, 10).forEach(s => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td><strong>${s.open ? "ABIERTA" : "CERRADA"}</strong></td>
@@ -221,7 +270,7 @@
       }
     }
 
-    btnOpen.addEventListener("click", ()=>{
+    btnOpen.addEventListener("click", () => {
       lastActionLbl.textContent = "Última acción: click Abrir caja…";
       try{
         const cur = App.getCurrentCashSession();
@@ -249,7 +298,7 @@
       }
     });
 
-    btnClose.addEventListener("click", ()=>{
+    btnClose.addEventListener("click", () => {
       lastActionLbl.textContent = "Última acción: click Cerrar caja…";
       try{
         App.closeCash();
@@ -263,59 +312,53 @@
       }
     });
 
-    render();
+    (function wirePinButton(){
+      function bind(){
+        const el = document.getElementById("btnCambiarUsuario");
+        if(!el) return;
+        if(el.__boundPinBtn) return;
+        el.__boundPinBtn = true;
 
-    
-  (function wirePinButton(){
-    function bind(){
-      var el = document.getElementById("btnCambiarUsuario");
-      if(!el) return;
+        el.addEventListener("click", async function(e){
+          e.preventDefault();
 
-      // evitar doble bind si se pega 2 veces
-      if(el.__boundPinBtn) return;
-      el.__boundPinBtn = true;
+          if(!confirm("¿Cambiar de usuario (volver a PIN)?")) return;
 
-      el.addEventListener("click", function(e){
-        e.preventDefault();
-
-        if(!confirm("¿Cambiar de usuario (volver a PIN)?")) return;
-
-        try{
-          if(window.App && typeof App.logout === "function"){
-            App.logout();
-          }else{
-            localStorage.removeItem("almacen_session_v1");
+          try{
+            if(window.authService && typeof authService.logout === "function"){
+              await authService.logout();
+            }else if(window.App && typeof App.logout === "function"){
+              App.logout();
+            }else{
+              localStorage.removeItem("accessToken");
+              localStorage.removeItem("refreshToken");
+              localStorage.removeItem("user");
+              location.href = "./login.html";
+            }
+          }catch(_e){
+            location.href = "./login.html";
           }
-        }catch(_e){}
+        });
+      }
 
-        var next = encodeURIComponent(location.pathname.split("/").pop() || "index.html");
-        location.href = "./login.html?next=" + next;
-      });
-    }
+      if(document.readyState === "loading"){
+        document.addEventListener("DOMContentLoaded", bind);
+      }else{
+        bind();
+      }
+    })();
 
-    // por si el script corre antes que el DOM
-    if(document.readyState === "loading"){
-      document.addEventListener("DOMContentLoaded", bind);
-    }else{
-      bind();
-    }
-  })();
-
+    render();
   </script>
-  <script>
-    // ============================================
-    // DARK MODE TOGGLE
-    // ============================================
 
+  <script>
     const themeToggle = document.getElementById('themeToggle');
     const html = document.documentElement;
 
-    // Get saved theme or default to light
     const savedTheme = localStorage.getItem('theme') || 'light';
     html.setAttribute('data-theme', savedTheme);
     updateToggleButton(savedTheme);
 
-    // Toggle theme on button click
     if (themeToggle) {
       themeToggle.addEventListener('click', () => {
         const currentTheme = html.getAttribute('data-theme');
@@ -327,7 +370,6 @@
       });
     }
 
-    // Update button icon and text
     function updateToggleButton(theme) {
       if (!themeToggle) return;
 
