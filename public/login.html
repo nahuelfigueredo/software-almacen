@@ -125,11 +125,18 @@
     }
 
     async function loadUsers(){
-      try {
-        const users = App.getUsers();
-        const userSelect = document.getElementById('userName');
+      const userSelect = document.getElementById('userName');
 
-        users.filter(u => u.active !== false).forEach(user => {
+      try {
+        const response = await fetch('/api/users');
+        if (!response.ok) throw new Error('Error al cargar usuarios');
+
+        const data = await response.json();
+        const users = data.data || [];
+
+        userSelect.innerHTML = '<option value="">Seleccionar usuario...</option>';
+
+        users.filter(u => u.active).forEach(user => {
           const option = document.createElement('option');
           option.value = user.name;
           option.textContent = `${user.name} (${roleLabel(user.role)})`;
@@ -137,6 +144,15 @@
         });
       } catch (error) {
         console.error('Error cargando usuarios:', error);
+        // Fallback: usar usuarios del localStorage antiguo
+        const users = App.getUsers();
+        userSelect.innerHTML = '<option value="">Seleccionar usuario...</option>';
+        users.filter(u => u.active !== false).forEach(user => {
+          const option = document.createElement('option');
+          option.value = user.name;
+          option.textContent = `${user.name} (${roleLabel(user.role)})`;
+          userSelect.appendChild(option);
+        });
       }
     }
 
