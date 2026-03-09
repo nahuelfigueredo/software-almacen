@@ -124,32 +124,37 @@
   </footer>
 
   <script src="./js/app.js"></script>
-
+  <script src="./assets/js/auth.js"></script>
 
   <script>
-    // ✅ obliga sesión: si no hay login, manda a login
+    // Inicializar sistema legacy para compatibilidad
     App.ensureAuthSeed();
 
-    const me = App.getMe();
-
-    if(!me){
+    // Verificar autenticación JWT
+    if (!authService.isAuthenticated()) {
       location.replace("./login.html?next=index.html");
-    }else{
-      const pill = document.getElementById("pillText");
-      if(pill) pill.textContent = `Hola, ${me.name}`;
+    } else {
+      const me = authService.getCurrentUser();
 
-      // ✅ filtra menú según rol (visual)
-      const role = me.role || "";
-      document.querySelectorAll("a.card[data-roles]").forEach(a=>{
-        const roles = (a.getAttribute("data-roles") || "")
-          .split(",")
-          .map(s=>s.trim())
-          .filter(Boolean);
+      if (!me) {
+        location.replace("./login.html?next=index.html");
+      } else {
+        const pill = document.getElementById("pillText");
+        if(pill) pill.textContent = `Hola, ${me.name}`;
 
-        if(!roles.includes(role)){
-          a.style.display = "none";
-        }
-      });
+        // Filtrar menú según rol
+        const role = me.role || "";
+        document.querySelectorAll("a.card[data-roles]").forEach(a=>{
+          const roles = (a.getAttribute("data-roles") || "")
+            .split(",")
+            .map(s=>s.trim())
+            .filter(Boolean);
+
+          if(!roles.includes(role)){
+            a.style.display = "none";
+          }
+        });
+      }
     }
   </script>
   <script>

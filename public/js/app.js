@@ -775,9 +775,23 @@ function loginWithPin(pin){
   return { ok:true, session };
 }
 
-function logout(){ clearSession(); }
+function logout(){
+  // Cerrar sesión JWT si existe
+  if(typeof authService !== 'undefined' && authService.isAuthenticated()){
+    authService.logout();
+  }
+  // También limpiar localStorage antiguo
+  clearSession();
+}
 
 function getMe(){
+  // Primero intentar JWT
+  const jwtUser = (typeof authService !== 'undefined') ? authService.getCurrentUser() : null;
+  if(jwtUser){
+    return { id: jwtUser.id, name: jwtUser.name, role: jwtUser.role };
+  }
+
+  // Fallback al sistema antiguo (para compatibilidad)
   const s = getSession();
   if(!s) return null;
   const u = getUsers().find(x => x.id === s.userId && x.active !== false);

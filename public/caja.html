@@ -387,6 +387,17 @@
     </div>
   </main>
 
+  <script src="./js/app.js"></script>
+  <script src="./assets/js/auth.js"></script>
+  <script>
+    // Verificar autenticación JWT
+    if (!authService.isAuthenticated()) {
+      location.replace('./login.html?next=caja.html');
+    } else {
+      const user = authService.getCurrentUser();
+      document.querySelector('.top__user').textContent = user ? user.name : 'Usuario';
+    }
+  </script>
   <script>
     let carrito = [];
     let searchTimeout;
@@ -431,7 +442,11 @@
     // Buscar productos en la API
     async function buscarProductos(query) {
       try {
-        const response = await fetch(`/api/products?search=${encodeURIComponent(query)}`);
+        const response = await authService.fetch(`/api/products?search=${encodeURIComponent(query)}`);
+        if (!response) {
+          location.replace('./login.html?next=caja.html');
+          return [];
+        }
         if (!response.ok) throw new Error(`Error del servidor (HTTP ${response.status})`);
         const data = await response.json();
         return (data.data || []).map(normalizeProducto);
@@ -445,11 +460,14 @@
 
     // Guardar venta en la base de datos
     async function guardarVenta(ventaData) {
-      const response = await fetch('/api/sales', {
+      const response = await authService.fetch('/api/sales', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(ventaData)
       });
+      if (!response) {
+        location.replace('./login.html?next=caja.html');
+        throw new Error('Sesión expirada');
+      }
       if (!response.ok) {
         const err = await response.json().catch(() => ({}));
         throw new Error(err.error || `Error del servidor (HTTP ${response.status})`);
