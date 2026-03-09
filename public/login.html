@@ -42,7 +42,13 @@
 
       <div class="row" style="gap:10px;align-items:end;flex-wrap:wrap">
         <div style="flex:1;min-width:220px">
-          <label for="pin">Ingresá tu PIN</label>
+          <label for="userName">Usuario</label>
+          <select id="userName" class="input">
+            <option value="">Seleccionar usuario...</option>
+          </select>
+        </div>
+        <div style="flex:1;min-width:220px">
+          <label for="pin">PIN</label>
           <input id="pin" class="pin-input" type="password" inputmode="numeric" autocomplete="one-time-code" placeholder="••••" />
         </div>
         <button class="btn btn--primary" id="btnLogin" type="button">Entrar</button>
@@ -64,6 +70,7 @@
   </main>
 
   <script src="./js/app.js"></script>
+  <script src="./assets/js/auth.js"></script>
   <script>
     App.ensureAuthSeed();
 
@@ -92,7 +99,7 @@
     }
 
     function targetFromSession(){
-      const me = App.getMe();
+      const me = authService.getCurrentUser();
       return nextParam || defaultNextFor(me);
     }
 
@@ -105,29 +112,87 @@
       `Al ingresar vas a ir a: ${nextParam || "según tu usuario"}`;
 
     function renderSessionBox(){
-      const me = App.getMe();
-      if(!me){
+      const user = authService.getCurrentUser();
+      if(!user){
         meBox.hidden = true;
         return;
       }
-      meLbl.textContent = `${me.name} (${roleLabel(me.role)})`;
+      meLbl.textContent = `${user.name} (${roleLabel(user.role)})`;
       meBox.hidden = false;
 
-      // ✅ cuando ya hay sesión, mostrale a dónde va a continuar
       document.getElementById("nextLbl").textContent =
-        `Al ingresar vas a ir a: ${targetFromSession()}`;
+        `Al ingresar vas a ir a: ${nextParam || defaultNextFor(user)}`;
     }
 
-    function doLogin(){
-      const res = App.loginWithPin(pin.value);
-      if(!res.ok){
-        App.toast(res.message || "PIN incorrecto");
-        pin.focus();
-        pin.select();
+    async function loadUsers(){
+      try {
+        const users = App.getUsers();
+        const userSelect = document.getElementById('userName');
+
+        users.filter(u => u.active !== false).forEach(user => {
+          const option = document.createElement('option');
+          option.value = user.name;
+          option.textContent = `${user.name} (${roleLabel(user.role)})`;
+          userSelect.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Error cargando usuarios:', error);
+      }
+    }
+
+    loadUsers();
+
+    async function doLogin(){
+      const userName = document.getElementById('userName').value;
+      const pinValue = pin.value.trim();
+
+      if(!userName){
+        App.toast('Seleccioná un usuario');
         return;
       }
-      App.toast("Ingreso OK");
-      goNext();
+
+      if(!pinValue){
+        App.toast('Ingresá tu PIN');
+        pin.focus();
+        return;
+      }
+
+      btnLogin.disabled = true;
+      btnLogin.textContent = 'Ingresando...';
+
+      try {
+        const user = await authService.login(userName, pinValue);
+        App.toast('Ingreso exitoso ✅');
+
+        // Track login para demo
+        try {
+          await fetch('/api/track/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              prospectId: user.id || user.name,
+              role: user.role,
+              name: user.name
+            })
+          });
+        } catch (e) {
+          console.warn('Track failed:', e);
+        }
+
+        // Redirigir según rol
+        const target = nextParam || defaultNextFor(user);
+        setTimeout(() => {
+          location.replace('./' + String(target).replace(/^\.\//, ''));
+        }, 300);
+
+      } catch (error) {
+        App.toast(error.message || 'Error al ingresar');
+        pin.focus();
+        pin.select();
+      } finally {
+        btnLogin.disabled = false;
+        btnLogin.textContent = 'Entrar';
+      }
     }
 
     btnLogin.addEventListener("click", doLogin);
@@ -138,9 +203,9 @@
       }
     });
 
-    btnLogout.addEventListener("click", ()=>{
-      App.logout();
-      App.toast("Sesión cerrada");
+    btnLogout.addEventListener('click', async () => {
+      await authService.logout();
+      App.toast('Sesión cerrada');
       renderSessionBox();
       pin.focus();
     });
