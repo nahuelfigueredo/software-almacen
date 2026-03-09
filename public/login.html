@@ -128,7 +128,8 @@
       const userSelect = document.getElementById('userName');
 
       try {
-        const response = await fetch('/api/users');
+        if (!authService.isAuthenticated()) throw new Error('Cannot load users: not authenticated');
+        const response = await authService.fetch('/api/users');
         if (!response.ok) throw new Error('Error al cargar usuarios');
 
         const data = await response.json();
@@ -177,20 +178,21 @@
       btnLogin.textContent = 'Ingresando...';
 
       try {
-        const user = await authService.login(userName, pinValue);
+        const result = await authService.login(userName, pinValue);
+
+        if (!result.ok) {
+          App.toast(result.message || 'PIN incorrecto');
+          pin.focus();
+          pin.select();
+          return;
+        }
+
+        const user = result.user;
         App.toast('Ingreso exitoso ✅');
 
         // Track login para demo
         try {
-          await fetch('/api/track/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              prospectId: user.id || user.name,
-              role: user.role,
-              name: user.name
-            })
-          });
+          await authService.fetch('/api/track/login', { method: 'POST' });
         } catch (e) {
           console.warn('Track failed:', e);
         }

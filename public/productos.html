@@ -162,6 +162,10 @@
   <script src="./assets/js/auth.js"></script>
 
   <script>
+    if (!authService.isAuthenticated()) {
+      window.location.href = '/login.html?next=' + encodeURIComponent(window.location.pathname.split('/').pop());
+    }
+
     App.guardPage(App.PERMS.admin_or_owner);
 
     const q = document.getElementById("q");
@@ -235,7 +239,7 @@
         const params = new URLSearchParams();
         if(text) params.set("search", text);
 
-        const resp = await fetch("/api/products?" + params.toString());
+        const resp = await authService.fetch("/api/products?" + params.toString());
         if(!resp.ok) throw new Error("Error del servidor");
         const data = await resp.json();
 
@@ -300,7 +304,7 @@
       const method = isUpdate ? "PUT" : "POST";
 
       try {
-        const resp = await fetch(url, {
+        const resp = await authService.fetch(url, {
           method,
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(p)
@@ -328,7 +332,7 @@
       if(!ok) return;
 
       try {
-        const resp = await fetch(`/api/products/${id}`, { method: "DELETE" });
+        const resp = await authService.fetch(`/api/products/${id}`, { method: "DELETE" });
         if(!resp.ok){
           const data = await resp.json();
           return App.toast(data.error || "Error al eliminar");

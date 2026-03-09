@@ -47,9 +47,9 @@ function appendJSONL(obj) {
   fs.appendFileSync(LOG_FILE, JSON.stringify(obj) + "\n", "utf8");
 }
 
-app.post("/api/track/login", (req, res) => {
+app.post("/api/track/login", authenticate, (req, res) => {
   try {
-    const { prospectId, role, name } = req.body || {};
+    const { id, name, role } = req.user;
     const ip =
       (req.headers["x-forwarded-for"] || "").split(",")[0].trim() ||
       req.socket.remoteAddress;
@@ -57,7 +57,7 @@ app.post("/api/track/login", (req, res) => {
     const event = {
       t: new Date().toISOString(),
       type: "login",
-      prospectId: String(prospectId || "unknown"),
+      prospectId: String(id || "unknown"),
       role: String(role || "unknown"),
       name: String(name || "unknown"),
       ip,
