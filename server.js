@@ -26,6 +26,12 @@ app.use("/api/", apiLimiter);
 // ====== AUTH ROUTES (sin middleware de autenticación) ======
 app.use("/api/auth", require("./src/routes/auth"));
 
+// ====== DEMO ROUTES (sin middleware de autenticación) ======
+if (process.env.DEMO_MODE === 'true') {
+  app.use("/api/demo", require("./src/routes/demo"));
+  console.log('🎨 Modo DEMO activado');
+}
+
 // ====== MIDDLEWARE DE AUTENTICACIÓN PARA RUTAS API ======
 app.use("/api/", authenticate);
 

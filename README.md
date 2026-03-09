@@ -2,6 +2,45 @@
 
 Aplicación web profesional de gestión de almacén con base de datos SQLite, API REST, dashboard con gráficos y panel de seguimiento de demo.
 
+## 🎨 Modo Demo
+
+Para probar el sistema con datos de ejemplo:
+
+```bash
+# 1. Crear archivo .env
+cp .env.example .env
+
+# 2. Editar .env y setear:
+DEMO_MODE=true
+
+# 3. Iniciar
+npm install
+npm start
+```
+
+**Usuarios Demo:**
+- Dueño Demo / PIN: `9999`
+- Administrador Demo / PIN: `1234`
+- Vendedor Demo / PIN: `5678`
+
+## 🚀 Modo Producción
+
+Para configurar para un cliente real:
+
+```bash
+npm run setup
+# Seguir las instrucciones
+```
+
+O manualmente:
+
+```bash
+cp .env.example .env
+# Editar .env: DEMO_MODE=false
+npm install
+npm start
+```
+
 ## Instalación
 
 ```bash
@@ -18,10 +57,13 @@ cp .env.example .env
 
 Variables de entorno disponibles:
 
-| Variable         | Descripción                              | Por defecto          |
-|------------------|------------------------------------------|----------------------|
-| `PORT`           | Puerto en que escucha el servidor        | `3000`               |
-| `DEMO_ADMIN_KEY` | Clave de acceso al panel de estadísticas | `mcndigitalstudio`   |
+| Variable                 | Descripción                                | Por defecto          |
+|--------------------------|--------------------------------------------|----------------------|
+| `PORT`                   | Puerto en que escucha el servidor          | `3000`               |
+| `DEMO_ADMIN_KEY`         | Clave de acceso al panel de estadísticas   | `mcndigitalstudio`   |
+| `DEMO_MODE`              | Activar modo demo con datos de ejemplo     | `false`              |
+| `DEMO_AUTO_RESET_HOURS`  | Horas entre resets automáticos (0=off)     | `24`                 |
+| `DEMO_BANNER_ENABLED`    | Mostrar banner "MODO DEMO" en el header    | `true`               |
 
 > ⚠️ Cambiar `DEMO_ADMIN_KEY` por un valor seguro antes de desplegar en producción.
 
@@ -33,6 +75,9 @@ npm start
 
 # Desarrollo (reinicia automáticamente con Node 18+)
 npm run dev
+
+# Setup guiado para producción
+npm run setup
 ```
 
 El servidor quedará disponible en `http://localhost:3000`.  
