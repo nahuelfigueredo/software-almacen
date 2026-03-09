@@ -127,35 +127,60 @@
   <script src="./assets/js/auth.js"></script>
 
   <script>
-    // Inicializar sistema legacy para compatibilidad
-    App.ensureAuthSeed();
+    window.addEventListener('DOMContentLoaded', () => {
+      console.log('🔍 DOM cargado, verificando autenticación...');
 
-    // Verificar autenticación JWT
-    if (!authService.isAuthenticated()) {
-      location.replace("./login.html?next=index.html");
-    } else {
+      if (typeof App === 'undefined') {
+        console.error('❌ App no está disponible');
+        alert('No se pudo cargar el sistema. Por favor, recargue la página o contacte al soporte técnico.');
+        return;
+      }
+
+      if (typeof authService === 'undefined') {
+        console.error('❌ authService no está disponible');
+        alert('No se pudo cargar el sistema de autenticación. Por favor, recargue la página o contacte al soporte técnico.');
+        return;
+      }
+
+      // Inicializar sistema legacy para compatibilidad
+      App.ensureAuthSeed();
+
+      // Verificar autenticación JWT
+      if (!authService.isAuthenticated()) {
+        console.log('❌ No autenticado, redirigiendo al login...');
+        location.replace("./login.html?next=index.html");
+        return;
+      }
+
       const me = authService.getCurrentUser();
+      console.log('✅ Usuario autenticado:', me);
 
       if (!me) {
+        console.log('❌ No se pudo obtener usuario, redirigiendo...');
         location.replace("./login.html?next=index.html");
-      } else {
-        const pill = document.getElementById("pillText");
-        if(pill) pill.textContent = `Hola, ${me.name}`;
-
-        // Filtrar menú según rol
-        const role = me.role || "";
-        document.querySelectorAll("a.card[data-roles]").forEach(a=>{
-          const roles = (a.getAttribute("data-roles") || "")
-            .split(",")
-            .map(s=>s.trim())
-            .filter(Boolean);
-
-          if(!roles.includes(role)){
-            a.style.display = "none";
-          }
-        });
+        return;
       }
-    }
+
+      const pill = document.getElementById("pillText");
+      if (pill) {
+        pill.textContent = `Hola, ${me.name}`;
+      }
+
+      // Filtrar menú según rol del usuario
+      const role = me.role || "";
+      document.querySelectorAll("a.card[data-roles]").forEach(a => {
+        const roles = (a.getAttribute("data-roles") || "")
+          .split(",")
+          .map(s => s.trim())
+          .filter(Boolean);
+
+        if (!roles.includes(role)) {
+          a.style.display = "none";
+        }
+      });
+
+      console.log('✅ Index cargado correctamente');
+    });
   </script>
   <script>
     // ============================================

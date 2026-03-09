@@ -84,6 +84,11 @@
 <script src="./js/app.js"></script>
 <script src="./assets/js/auth.js"></script>
 <script>
+  if (typeof authService === 'undefined' || !authService.isAuthenticated()) {
+    location.replace('./login.html?next=usuarios.html');
+  }
+</script>
+<script>
 (() => {
   const errorBox = document.getElementById("errorBox");
   const errorMsg = document.getElementById("errorMsg");

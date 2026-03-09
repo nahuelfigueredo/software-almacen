@@ -114,6 +114,10 @@
   <script src="./js/app.js"></script>
   <script src="./assets/js/auth.js"></script>
   <script>
+    if (typeof authService === 'undefined' || !authService.isAuthenticated()) {
+      location.replace('./login.html?next=dashboard.html');
+    }
+
     App.ensureAuthSeed();
     App.guardPage(App.PERMS.seller_admin_owner);
 

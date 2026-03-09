@@ -390,13 +390,25 @@
   <script src="./js/app.js"></script>
   <script src="./assets/js/auth.js"></script>
   <script>
-    // Verificar autenticación JWT
-    if (!authService.isAuthenticated()) {
-      location.replace('./login.html?next=caja.html');
-    } else {
+    window.addEventListener('DOMContentLoaded', () => {
+      if (typeof authService === 'undefined' || !authService.isAuthenticated()) {
+        location.replace('./login.html?next=caja.html');
+        return;
+      }
+
       const user = authService.getCurrentUser();
-      document.querySelector('.top__user').textContent = user ? user.name : 'Usuario';
-    }
+      if (!user) {
+        location.replace('./login.html?next=caja.html');
+        return;
+      }
+
+      const userElement = document.querySelector('.top__user');
+      if (userElement) {
+        userElement.textContent = user.name;
+      }
+
+      console.log('✅ Caja cargada, usuario:', user);
+    });
   </script>
   <script>
     let carrito = [];
