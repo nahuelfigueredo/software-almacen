@@ -8,6 +8,59 @@ Aplicación web profesional de gestión de almacén con base de datos SQLite, AP
 npm install
 ```
 
+## 🎨 Modo Demo
+
+Para demostraciones a clientes:
+
+1. Copiar `.env.example` a `.env`
+2. Configurar `DEMO_MODE=true`
+3. `npm start`
+4. Visitar `http://localhost:3000`
+
+**Usuarios demo:**
+- Dueño: PIN `9999`
+- Administrador: PIN `1234`
+- Vendedor: PIN `5678` (rol: cashier)
+
+**Características demo:**
+- 50+ productos realistas
+- 15 ventas de ejemplo
+- Banner visible de modo demo
+- Botón de reset de datos
+
+---
+
+## 🚀 Instalación Producción
+
+Para clientes que compran:
+
+```bash
+npm install
+npm run setup
+# Seguir las instrucciones en pantalla
+npm start
+```
+
+El script preguntará:
+- Nombre del negocio
+- Nombre del usuario dueño
+- PIN inicial
+- Genera JWT secret único
+
+---
+
+## 📋 Diferencias Demo vs Producción
+
+| Feature | Demo | Producción |
+|---------|------|------------|
+| Datos iniciales | 50+ productos, ventas ejemplo | Solo usuario dueño |
+| Banner visible | ✅ Sí | ❌ No |
+| Endpoint reset | ✅ Habilitado | ❌ Deshabilitado |
+| JWT Secret | Compartido | Único generado |
+| Usuarios | 3 precargados | 1 creado en setup |
+
+---
+
 ## Configuración
 
 Copiar el archivo de ejemplo y ajustar las variables:
@@ -18,12 +71,18 @@ cp .env.example .env
 
 Variables de entorno disponibles:
 
-| Variable         | Descripción                              | Por defecto          |
-|------------------|------------------------------------------|----------------------|
-| `PORT`           | Puerto en que escucha el servidor        | `3000`               |
-| `DEMO_ADMIN_KEY` | Clave de acceso al panel de estadísticas | `mcndigitalstudio`   |
+| Variable               | Descripción                              | Por defecto          |
+|------------------------|------------------------------------------|----------------------|
+| `PORT`                 | Puerto en que escucha el servidor        | `3000`               |
+| `DEMO_ADMIN_KEY`       | Clave de acceso al panel de estadísticas | `mcndigitalstudio`   |
+| `DEMO_MODE`            | Habilita modo demostración               | `false`              |
+| `DEMO_AUTO_RESET_HOURS`| Horas para reset automático en demo      | `24`                 |
+| `DEMO_BANNER_ENABLED`  | Muestra banner de modo demo              | `true`               |
+| `JWT_SECRET`           | Clave secreta para tokens JWT            | —                    |
+| `JWT_EXPIRES_IN`       | Expiración del token de acceso           | `8h`                 |
+| `JWT_REFRESH_EXPIRES_IN`| Expiración del token de refresco        | `7d`                 |
 
-> ⚠️ Cambiar `DEMO_ADMIN_KEY` por un valor seguro antes de desplegar en producción.
+> ⚠️ Cambiar `DEMO_ADMIN_KEY` y `JWT_SECRET` por valores seguros antes de desplegar en producción.
 
 ## Ejecución
 
@@ -36,13 +95,21 @@ npm run dev
 ```
 
 El servidor quedará disponible en `http://localhost:3000`.  
-La base de datos SQLite se crea automáticamente en `data/almacen.db` con usuarios demo:
+La base de datos SQLite se crea automáticamente en `data/almacen.db`.
 
-| Nombre  | PIN  | Rol       |
-|---------|------|-----------|
-| Dueño   | 9999 | owner     |
-| Admin   | 1234 | admin     |
-| Vendedor| 0000 | cashier   |
+En **modo producción** (por defecto) se crea un único usuario inicial:
+
+| Nombre | PIN  | Rol   |
+|--------|------|-------|
+| Dueño  | 9999 | owner |
+
+En **modo demo** (`DEMO_MODE=true`) se precarga con:
+
+| Nombre       | PIN  | Rol   |
+|--------------|------|-------|
+| Dueño        | 9999 | owner |
+| Administrador| 1234 | admin |
+| Vendedor     | 5678 | cashier|
 
 ## Estructura del proyecto
 
@@ -57,16 +124,21 @@ software-almacen/
 │   │   └── js/
 │   │       ├── api.js              # Cliente REST API
 │   │       ├── charts.js           # Gráficos Chart.js con colores MCN
+│   │       ├── demo-banner.js      # Banner y reset de modo demo
 │   │       └── theme.js            # Toggle dark/light mode
 │   ├── css/                        # Estilos del frontend existente
 │   ├── js/
 │   │   └── app.js                  # Lógica frontend offline (localStorage)
 │   └── *.html                      # Páginas de la aplicación
+├── scripts/
+│   └── setup.js                    # Configurador interactivo para producción
 ├── src/
 │   ├── database/
+│   │   ├── demo-seed.js            # Datos de demostración (50+ productos, ventas)
 │   │   ├── init.js                 # Inicialización y seed de la DB
 │   │   └── schema.sql              # Esquema SQLite
 │   ├── routes/
+│   │   ├── demo.js                 # Endpoint de reset demo
 │   │   ├── products.js             # CRUD de productos
 │   │   ├── sales.js                # Ventas con items y descuento de stock
 │   │   ├── users.js                # CRUD de usuarios
@@ -130,6 +202,12 @@ software-almacen/
 |--------|--------------------------------------|---------------------------------------|
 | POST   | `/api/track/login`                   | Registra un evento de inicio de sesión |
 | GET    | `/admin/demo-stats?key=<ADMIN_KEY>`  | Estadísticas de uso del demo          |
+
+### Demo Reset (solo cuando `DEMO_MODE=true`)
+| Método | Endpoint           | Descripción                             |
+|--------|--------------------|-----------------------------------------|
+| GET    | `/api/demo/status` | Estado del modo demo                    |
+| POST   | `/api/demo/reset`  | Resetea la base de datos de demo        |
 
 ## Características
 
