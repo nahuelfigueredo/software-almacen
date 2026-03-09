@@ -162,6 +162,10 @@
   <script src="./assets/js/auth.js"></script>
 
   <script>
+    if (typeof authService === 'undefined' || !authService.isAuthenticated()) {
+      location.replace('./login.html?next=productos.html');
+    }
+
     App.guardPage(App.PERMS.admin_or_owner);
 
     const q = document.getElementById("q");

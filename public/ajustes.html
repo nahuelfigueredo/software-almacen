@@ -198,6 +198,11 @@
   <script src="./assets/js/auth.js"></script>
 
   <script>
+    if (typeof authService === 'undefined' || !authService.isAuthenticated()) {
+      location.replace('./login.html?next=ajustes.html');
+    }
+  </script>
+  <script>
     // Boot seguro (por si el browser tarda en ejecutar app.js)
     (function boot(){
       if(!window.App) return setTimeout(boot, 20);

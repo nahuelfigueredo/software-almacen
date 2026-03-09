@@ -137,6 +137,10 @@
   <script src="./assets/js/auth.js"></script>
 
   <script>
+    if (typeof authService === 'undefined' || !authService.isAuthenticated()) {
+      location.replace('./login.html?next=entradas.html');
+    }
+
     // ✅ permitir también Vendedora (seller)
     App.guardPage(App.PERMS.seller_admin_owner);
     window.App.ensureSeed();
