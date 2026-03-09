@@ -40,7 +40,7 @@ router.post('/', (req, res) => {
       return res.status(400).json({ error: 'name, pin y role son requeridos' });
     }
 
-    const validRoles = ['owner', 'admin', 'cashier'];
+    const validRoles = ['owner', 'admin', 'seller'];
     if (!validRoles.includes(role)) {
       return res.status(400).json({ error: `role debe ser uno de: ${validRoles.join(', ')}` });
     }
@@ -64,7 +64,7 @@ router.put('/:id', (req, res) => {
       return res.status(400).json({ error: 'name y role son requeridos' });
     }
 
-    const validRoles = ['owner', 'admin', 'cashier'];
+    const validRoles = ['owner', 'admin', 'seller'];
     if (!validRoles.includes(role)) {
       return res.status(400).json({ error: `role debe ser uno de: ${validRoles.join(', ')}` });
     }

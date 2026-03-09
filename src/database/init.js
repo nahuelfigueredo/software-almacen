@@ -54,7 +54,7 @@ const seedData = () => {
 
   insertUser.run(1, 'Dueño', '9999', 'owner');
   insertUser.run(2, 'Administrador', '1234', 'admin');
-  insertUser.run(3, 'Cajero', '0000', 'cashier');
+  insertUser.run(3, 'Vendedor', '5678', 'seller');
 
   // Categorías
   const insertCategory = db.prepare(`
@@ -125,10 +125,23 @@ const runMigrations = () => {
   db.exec("CREATE INDEX IF NOT EXISTS idx_users_refresh_token ON users(refresh_token)");
 };
 
+// Migración: actualizar rol cashier a seller
+const migrateCashierToSeller = () => {
+  const cashierUsers = db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'cashier'").get();
+
+  if (cashierUsers.count > 0) {
+    db.transaction(() => {
+      db.exec("UPDATE users SET role = 'seller' WHERE role = 'cashier'");
+    })();
+    console.log(`✅ Migrados ${cashierUsers.count} usuarios de 'cashier' a 'seller'`);
+  }
+};
+
 // Inicializar
 initSchema();
 seedData();
 runMigrations();
+migrateCashierToSeller();
 
 function getDb() {
   return db;
