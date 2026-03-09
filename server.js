@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("path");
 const fs = require("fs");
 const rateLimit = require("express-rate-limit");
+const { authenticate, authorize } = require("./src/middleware/auth");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -22,12 +23,18 @@ const apiLimiter = rateLimit({
 });
 app.use("/api/", apiLimiter);
 
+// ====== AUTH ROUTES (sin middleware de autenticación) ======
+app.use("/api/auth", require("./src/routes/auth"));
+
+// ====== MIDDLEWARE DE AUTENTICACIÓN PARA RUTAS API ======
+app.use("/api/", authenticate);
+
 // ====== API ROUTES ======
 app.use("/api/products", require("./src/routes/products"));
 app.use("/api/sales",    require("./src/routes/sales"));
-app.use("/api/users",    require("./src/routes/users"));
+app.use("/api/users",    authorize("admin", "owner"), require("./src/routes/users"));
 app.use("/api/stock",    require("./src/routes/stock"));
-app.use("/api/reports",  require("./src/routes/reports"));
+app.use("/api/reports",  authorize("admin", "owner"), require("./src/routes/reports"));
 
 // ====== DEMO TRACKING (MVP) ======
 const ADMIN_KEY = process.env.DEMO_ADMIN_KEY || "mcndigitalstudio";

@@ -101,8 +101,38 @@ const seedData = () => {
   console.log('✅ Datos iniciales insertados');
 };
 
+// Migraciones: agregar columnas JWT a users si no existen
+const runMigrations = () => {
+  const columns = db.prepare("PRAGMA table_info(users)").all().map(c => c.name);
+
+  if (!columns.includes('pin_hash')) {
+    db.exec("ALTER TABLE users ADD COLUMN pin_hash TEXT");
+    // Copiar pin existente a pin_hash para soporte legacy
+    db.exec("UPDATE users SET pin_hash = pin WHERE pin_hash IS NULL");
+    console.log('✅ Columna pin_hash agregada a users');
+  }
+
+  if (!columns.includes('refresh_token')) {
+    db.exec("ALTER TABLE users ADD COLUMN refresh_token TEXT");
+    console.log('✅ Columna refresh_token agregada a users');
+  }
+
+  if (!columns.includes('last_login')) {
+    db.exec("ALTER TABLE users ADD COLUMN last_login DATETIME");
+    console.log('✅ Columna last_login agregada a users');
+  }
+
+  db.exec("CREATE INDEX IF NOT EXISTS idx_users_refresh_token ON users(refresh_token)");
+};
+
 // Inicializar
 initSchema();
 seedData();
+runMigrations();
+
+function getDb() {
+  return db;
+}
 
 module.exports = db;
+module.exports.getDb = getDb;
